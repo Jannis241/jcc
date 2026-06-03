@@ -1,0 +1,3 @@
+- peek nutzt strlen => sehr ineffizient => länge irgendwo speichern
+- ownersship und lifetimes richtig lernen
+- kopiert das normal oder gibt ownersship wenn man ohne pointer macht?
