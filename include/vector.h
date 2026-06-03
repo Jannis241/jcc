@@ -11,13 +11,13 @@ typedef struct {                                                    \
     size_t cap;                                                     \
 } Name;                                                            \
                                                                     \
-void Name##_init(Name *v) {                                         \
+static inline void Name##_init(Name *v) {                                         \
     v->data = NULL;                                                 \
     v->len = 0;                                                     \
     v->cap = 0;                                                     \
 }                                                                   \
                                                                     \
-void Name##_push(Name *v, T value) {                                \
+static inline void Name##_push(Name *v, T value) {                                \
     if (v->len >= v->cap) {                                         \
         v->cap = v->cap == 0 ? 4 : v->cap * 2;                      \
         v->data = realloc(v->data, v->cap * sizeof(T));             \
@@ -25,7 +25,7 @@ void Name##_push(Name *v, T value) {                                \
     v->data[v->len++] = value;                                      \
 }                                                                   \
                                                                     \
-void Name##_free(Name *v) {                                         \
+static inline void Name##_free(Name *v) {                                         \
     free(v->data);                                                  \
     v->data = NULL;                                                 \
     v->len = 0;                                                     \

@@ -1,6 +1,5 @@
 #ifndef AST_H
 #define AST_H
-
 #include "vector.h"
 
 typedef struct AST_EXPR AST_EXPR;
@@ -9,7 +8,7 @@ typedef struct {
     char* name;
 } AST_TYPE_NAME;
 
-VECTOR_DEFINE(AST_TYPE_NAME*, ASTTypeNameVec);
+VECTOR_DEFINE(AST_TYPE_NAME*, ASTTypeNameVec)
 
 typedef enum {
     EXPRKIND_STRING_LITERAL,
@@ -60,7 +59,7 @@ typedef enum {
 typedef struct AST_STMT AST_STMT;
 
 
-VECTOR_DEFINE(AST_STMT*, ASTStmtVec);
+VECTOR_DEFINE(AST_STMT*, ASTStmtVec)
 
 typedef struct {
     ASTStmtVec statements;
@@ -124,7 +123,7 @@ typedef struct {
     AST_EXPR* expr;
 } AST_NAME_EXPR;
 
-VECTOR_DEFINE(AST_NAME_EXPR*, ASTNameExprVec);
+VECTOR_DEFINE(AST_NAME_EXPR*, ASTNameExprVec)
 
 typedef struct {
     char* enum_name;
@@ -181,7 +180,7 @@ typedef struct {
 } EXPR_BINARY_ASSIGN;
 
 
-VECTOR_DEFINE(AST_EXPR*, AstExprVec); // => muss pointer weil c dumm ist
+VECTOR_DEFINE(AST_EXPR*, AstExprVec)
 
 typedef struct EXPR_CALL {
     char* function_name;
@@ -220,7 +219,7 @@ typedef struct {
     AST_EXPR* value;
 } AST_CONST;
 
-VECTOR_DEFINE(char*, StrVec);
+VECTOR_DEFINE(char*, StrVec)
 typedef struct {
     char* name;
     StrVec cases;
@@ -239,10 +238,10 @@ typedef struct {
     AST_STMT_BLOCK block;
 } AST_FUNCTION;
 
-VECTOR_DEFINE(AST_FUNCTION*, ASTFunctionVec);
-VECTOR_DEFINE(AST_STRUCTDEF*, ASTStructVec);
-VECTOR_DEFINE(AST_ENUMDEF*, ASTEnumVec);
-VECTOR_DEFINE(AST_CONST*, ASTConstVec);
+VECTOR_DEFINE(AST_FUNCTION*, ASTFunctionVec)
+VECTOR_DEFINE(AST_STRUCTDEF*, ASTStructVec)
+VECTOR_DEFINE(AST_ENUMDEF*, ASTEnumVec)
+VECTOR_DEFINE(AST_CONST*, ASTConstVec)
 typedef struct {
     ASTFunctionVec functions;
     AST_STRUCTDEF struct_defs;
