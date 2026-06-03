@@ -107,7 +107,7 @@ struct AST_STMT {
         AST_STMT_EXPR expr_stmt;
         AST_STMT_LET let_stmt;
         AST_STMT_IF if_stmt;
-        AST_STMT_IF while_stmt;
+        AST_STMT_WHILE while_stmt;
         AST_STMT_FOR for_stmt;
         AST_STMT_RETURN return_stmt;
         // break und continue brauchen keine value
@@ -244,9 +244,9 @@ VECTOR_DEFINE(AST_ENUMDEF*, ASTEnumVec)
 VECTOR_DEFINE(AST_CONST*, ASTConstVec)
 typedef struct {
     ASTFunctionVec functions;
-    AST_STRUCTDEF struct_defs;
-    AST_ENUMDEF enum_defs;
-    AST_CONST constants;
+    ASTStructVec struct_defs;
+    ASTEnumVec enum_defs;
+    ASTConstVec  constants;
 } AST_ROOT;
 
 typedef struct {

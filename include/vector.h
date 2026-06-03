@@ -19,7 +19,7 @@ static inline void Name##_init(Name *v) {                                       
                                                                     \
 static inline void Name##_push(Name *v, T value) {                                \
     if (v->len >= v->cap) {                                         \
-        v->cap = v->cap == 0 ? 4 : v->cap * 2;                      \
+        v->cap = v->cap == 0 ? 256 : v->cap * 2;                      \
         v->data = realloc(v->data, v->cap * sizeof(T));             \
     }                                                               \
     v->data[v->len++] = value;                                      \
