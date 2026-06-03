@@ -3,12 +3,13 @@
 
 #include "vector.h"
 
+typedef struct AST_EXPR AST_EXPR;
 typedef struct {
     char* type;
     char* name;
 } AST_TYPE_NAME;
 
-VECTOR_DEFINE(AST_TYPE_NAME, ASTTypeNameVec);
+VECTOR_DEFINE(AST_TYPE_NAME*, ASTTypeNameVec);
 
 typedef enum {
     EXPRKIND_STRING_LITERAL,
@@ -54,40 +55,53 @@ typedef enum {
     STMTKIND_BREAK,
     STMTKIND_CONTINUE,
 } ASTStmtKind;
-typedef struct {
 
+
+typedef struct AST_STMT AST_STMT;
+
+
+VECTOR_DEFINE(AST_STMT*, ASTStmtVec);
+
+typedef struct {
+    ASTStmtVec statements;
 } AST_STMT_BLOCK;
 
 typedef struct {
-
+    AST_EXPR* expr; 
 } AST_STMT_EXPR;
 
 typedef struct {
-
+    char* var_name;
+    char* var_type;
+    AST_EXPR* value;
 } AST_STMT_LET;
 
-typedef struct {
 
+
+typedef struct {
+    AST_EXPR* condition;
+    AST_STMT_BLOCK code_block;
+    int has_else; 
+    AST_STMT_BLOCK optional_else_block;
 } AST_STMT_IF;
 
 typedef struct {
-
+    AST_EXPR* condition;
+    AST_STMT_BLOCK code_block;
 } AST_STMT_WHILE;
 
 typedef struct {
-
+    char* var_name;
+    AST_EXPR* condition;
+    AST_STMT_BLOCK code_block;
 } AST_STMT_FOR;
-typedef struct {
 
+typedef struct {
+    int has_return_value;
+    AST_EXPR* value; // kann auch void sein
 } AST_STMT_RETURN;
-typedef struct {
 
-} AST_STMT_BREAK;
-typedef struct {
-
-} AST_STMT_CONTINUE;
-
-typedef struct {
+struct AST_STMT {
     ASTStmtKind kind;
     union {
         AST_STMT_BLOCK block_stmt;
@@ -97,22 +111,20 @@ typedef struct {
         AST_STMT_IF while_stmt;
         AST_STMT_FOR for_stmt;
         AST_STMT_RETURN return_stmt;
-        AST_STMT_BREAK break_stmt;
-        AST_STMT_CONTINUE continue_stmt;
+        // break und continue brauchen keine value
     } value;
-} AST_STMT;
+};
 
 
 
 
-typedef struct AST_EXPR AST_EXPR;
 
 typedef struct {
     char* name;
     AST_EXPR* expr;
 } AST_NAME_EXPR;
 
-VECTOR_DEFINE(AST_NAME_EXPR, ASTNameExprVec);
+VECTOR_DEFINE(AST_NAME_EXPR*, ASTNameExprVec);
 
 typedef struct {
     char* enum_name;
@@ -168,7 +180,6 @@ typedef struct {
     AST_EXPR* value;
 } EXPR_BINARY_ASSIGN;
 
-typedef struct AST_EXPR AST_EXPR;
 
 VECTOR_DEFINE(AST_EXPR*, AstExprVec); // => muss pointer weil c dumm ist
 
@@ -221,18 +232,17 @@ typedef struct {
     ASTTypeNameVec fields; 
 } AST_STRUCTDEF;
 
-VECTOR_DEFINE(AST_STMT, ASTStmtVec);
 typedef struct {
     char* name;
     char* return_type;
     ASTTypeNameVec params;
-    ASTStmtVec statements;
+    AST_STMT_BLOCK block;
 } AST_FUNCTION;
 
-VECTOR_DEFINE(AST_FUNCTION, ASTFunctionVec);
-VECTOR_DEFINE(AST_STRUCTDEF, ASTStructVec);
-VECTOR_DEFINE(AST_ENUMDEF, ASTEnumVec);
-VECTOR_DEFINE(AST_CONST, ASTConstVec);
+VECTOR_DEFINE(AST_FUNCTION*, ASTFunctionVec);
+VECTOR_DEFINE(AST_STRUCTDEF*, ASTStructVec);
+VECTOR_DEFINE(AST_ENUMDEF*, ASTEnumVec);
+VECTOR_DEFINE(AST_CONST*, ASTConstVec);
 typedef struct {
     ASTFunctionVec functions;
     AST_STRUCTDEF struct_defs;

@@ -34,5 +34,4 @@ typedef struct {
 
 ParserResult parse_tokens(const TokenVec* tokens);
 
-
 #endif
