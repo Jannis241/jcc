@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 
-
-
 typedef enum {
     TOKEN_TRUE,
     TOKEN_FALSE,
@@ -73,11 +71,11 @@ typedef enum {
 
 typedef struct {
     TokenKind kind;
-    const char* value;
+    const char *value;
 } Token;
 
 typedef struct {
-    Token* data;
+    Token *data;
     size_t num_of_tokens;
     size_t token_capacity;
 } TokenVec;
@@ -107,15 +105,15 @@ typedef struct {
 typedef struct {
     size_t pos;
     char current_char;
-    const char* input;
+    const char *input;
     size_t input_len;
     TokenVec tokens;
     LexError err_status;
 } Lexer;
 
-LexResult generate_tokens(const char* str_input);
-const char* token_kind_name(TokenKind kind);
+LexResult generate_tokens(const char *str_input);
+const char *token_kind_name(TokenKind kind);
 void print_token_kind(TokenKind kind);
-int free_token_vec(TokenVec* vec);
+int free_token_vec(TokenVec *vec);
 
 #endif

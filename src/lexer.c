@@ -578,9 +578,10 @@ LexResult generate_tokens(const char* str_input) {
     Lexer lexer = {.pos = 0, .current_char = *str_input, .input = str_input, .tokens = create_token_Vec(), .input_len = strlen(str_input)};
     lexer.err_status = gen_lexerror(&lexer, LEXER_OK);
 
-
     while (lexer.current_char) {
-        generate_next_token(&lexer);
+        // alle funktionen kümmern sich selber darum ein Token weiter zu gehen, 
+        // man muss hier also nicht nochmal manuel advance() callen.
+        generate_next_token(&lexer); 
 
         if (lexer.err_status.status != LEXER_OK) {
             return (LexResult) {.tokens = lexer.tokens, .error = lexer.err_status};

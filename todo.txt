@@ -1,14 +1,14 @@
-Parser:
-- Lifetimes Problem mit root fixxen
-
 Lexer
-- string und char escapes implementieren
-- Klar festlegen wer die token werte speichert und besitzt: mit copy token value, owner ship mit kopie, slice aus dem input mit start/len?
+1. string und char escapes implementieren
+2. Klar festlegen wer die token werte speichert und besitzt: mit copy token value, owner ship mit kopie, slice aus dem input mit start/len?
 
 AST
-- Überlegen ob ich wirklich das modell mache mit root und alles ist dann ein ASTNode oder ob ich einfach einen ast
+1. Überlegen ob ich wirklich das modell mache mit root und alles ist dann ein ASTNode oder ob ich einfach einen ast
   mache und das speichert die top level items dann manuell
-- Ownership festlegen: Wer besitzt char* Namen, Typen, Literals und AST-Knoten? => passende free methoden!! 
-- Konstruktoren für ast knoten erstellen 
-- spans bei expr stmt oder top level nodes anhängen für bessere errors später
-- Arena-Allocator für später (und an memory free denken?)
+2. Ownership festlegen: Wer besitzt char* Namen, Typen, Literals und AST-Knoten? => passende free methoden!! 
+3. Konstruktoren für ast knoten erstellen 
+4. spans bei expr stmt oder top level nodes anhängen für bessere errors später
+5. Arena-Allocator für später (und an memory free denken?)
+
+Parser:
+1. Lifetimes Problem mit root fixxen
