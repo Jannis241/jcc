@@ -35,7 +35,6 @@ typedef enum {
 } ASTExprKind;
 
 typedef enum {
-    AST_ROOT,
     AST_STMT,
     AST_FUNCTION,
     AST_CONST,
@@ -243,23 +242,15 @@ VECTOR_DEFINE(ASTFunction*, ASTFunctionVec)
 VECTOR_DEFINE(ASTStructDef*, ASTStructDefVec)
 VECTOR_DEFINE(ASTEnumDef*, ASTEnumDefVec)
 VECTOR_DEFINE(ASTConst*, ASTConstVec)
+
+// Alle top level items kommen hier rein
 typedef struct {
     ASTFunctionVec functions;
     ASTStructDefVec struct_defs;
     ASTEnumDefVec enum_defs;
     ASTConstVec  constants;
-} ASTRoot;
+} AST;
 
-typedef struct {
-    ASTKind kind;
-    union {
-        ASTRoot root;
-        ASTExpr expr;
-        ASTStmt stmt;
-        ASTStructDef struct_def;
-        ASTEnumDef enum_def;
-        ASTFunction function;
-    } value;
-} ASTNode;
+
 
 #endif

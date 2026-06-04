@@ -1,5 +1,3 @@
-Lexer
-1. string und char escapes implementieren
 
 AST
 1. Überlegen ob ich wirklich das modell mache mit root und alles ist dann ein ASTNode oder ob ich einfach einen ast
