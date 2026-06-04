@@ -95,23 +95,6 @@ static LexError gen_lexerror(Lexer *lexer, LexStatus status) {
     };
 }
 
-int free_token_vec(TokenVec* vec) {
-    if (vec == NULL) {
-        return 1;
-    }
-
-    if (vec->data != NULL) {
-        for (size_t i = 0; i < vec->num_of_tokens; i++) {
-            free((void*)vec->data[i].value);
-        }
-        free(vec->data);
-        vec->data = NULL;
-    }
-
-    vec->num_of_tokens = 0;
-    vec->token_capacity = 0;
-    return 0;
-}
 
 static int push_token(TokenVec* vec, Token* token) {
     if (vec == NULL || token == NULL) {

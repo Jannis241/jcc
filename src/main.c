@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
 
     LexResult token_res = generate_tokens(source);
 
+
     switch (token_res.error.status) {
     case LEXER_OK:
         printf("[LEXER SUCCESS]\n");
@@ -82,7 +83,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    for (int i = 0; i < token_res.tokens.num_of_tokens; i++) {
+    if (token_res.tokens.num_of_tokens == 0) {
+        return 0;
+    }
+
+    for (size_t i = 0; i < token_res.tokens.num_of_tokens; i++) {
         print_out_token(&token_res.tokens.data[i]);
     }
 
@@ -99,7 +104,4 @@ int main(int argc, char *argv[]) {
         printf("PARSER_ERR_UNEXPECTED_EOF\n");
         return 1;
     }
-
-    free_token_vec(&token_res.tokens);
-    free(source);
 }

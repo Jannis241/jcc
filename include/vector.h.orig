@@ -1,0 +1,31 @@
+#ifndef VECTOR_H
+#define VECTOR_H
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#define VECTOR_DEFINE(T, Name)                                      \
+typedef struct {                                                    \
+    T *data;                                                        \
+    size_t len;                                                     \
+    size_t cap;                                                     \
+} Name;                                                            \
+                                                                    \
+static inline void Name##_init(Name *v) {                                         \
+    v->data = NULL;                                                 \
+    v->len = 0;                                                     \
+    v->cap = 0;                                                     \
+}                                                                   \
+                                                                    \
+static inline void Name##_push(Name *v, T value) {                                \
+    if (v->len >= v->cap) {                                         \
+        v->cap = v->cap == 0 ? 256 : v->cap * 2;                      \
+        v->data = realloc(v->data, v->cap * sizeof(T));             \
+    }                                                               \
+    v->data[v->len++] = value;                                      \
+}                                                                   \
+                                                                    \
+
+#endif

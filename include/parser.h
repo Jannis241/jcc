@@ -20,7 +20,7 @@ typedef struct {
 } ParserError;
 
 typedef struct {
-    const TokenVec* tokens;
+    TokenVec* tokens;
     size_t pos;
     Token* current_token;
     ParserError parser_error;
@@ -33,5 +33,6 @@ typedef struct {
 } ParserResult;
 
 ParserResult parse_tokens(const TokenVec* tokens);
+void free_ast(AST *ast);
 
 #endif

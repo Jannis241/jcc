@@ -114,6 +114,5 @@ typedef struct {
 LexResult generate_tokens(const char *str_input);
 const char *token_kind_name(TokenKind kind);
 void print_token_kind(TokenKind kind);
-int free_token_vec(TokenVec *vec);
 
 #endif
