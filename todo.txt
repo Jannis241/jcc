@@ -3,7 +3,6 @@ Parser:
 
 Lexer
 - Zeile und Spalte tracken, nicht nur pos für bessere Errors
-- Number Lexing verbessern: nur einen Punkt erlauben, "12.34.56" als Fehler melden, "." nicht aus versehen als Float behandeln
 - string und char escapes implementieren
 - keyword erkennung verbessern (eigene hashmap? oder array)
 - alle printfs entfernen (nur durch lexer result fehler melden)

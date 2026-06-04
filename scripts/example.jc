@@ -10,5 +10,10 @@ struct test {
 fn main() {
     let b = true;
 
+    .
+
+    let x = 1.1324;
+    //let x = 1.13.24;
+
     let _c = false;
 }

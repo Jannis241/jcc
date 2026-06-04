@@ -54,43 +54,50 @@ int main(int argc, char *argv[]) {
     LexResult token_res = generate_tokens(source);
 
     switch (token_res.error.status) {
-        case LEXER_OK:
-            printf("[LEXER SUCCESS]\n");
-            break;
-        case LEXER_ERR_INTERNAL_PUSH_ERROR:
-            printf("ERR_INTERNAL_PUSH_ERROR \n");
-            return 1;
-        case LEXER_ERR_INVALID_CHARACTER:
-            printf("INVALID_CHARACTER: '%c' at pos: '%zu' \n",
-                   token_res.error.character, token_res.error.pos);
-            return 1;
-        case LEXER_ERR_UNEXPECTED_EOF:
-            printf("UNEXPECTED_EOF \n");
-            return 1;
-        case LEXER_ERR_UNTERMINATED_CHAR:
-            printf("UNTERMINATED_CHAR \n");
-            return 1;
-        case LEXER_ERR_INVALID_CHAR_LITERAL_SPAN: {
-            printf("INVALID_CHAR_LITERAL_SPAN");
-            return 1;
-        }
-        case LEXER_ERR_UNTERMINATED_STRING:
-            printf("UNTERMINATED_STRING \n");
-            return 1;
+    case LEXER_OK:
+        printf("[LEXER SUCCESS]\n");
+        break;
+    case LEXER_ERR_INTERNAL_PUSH_ERROR:
+        printf("ERR_INTERNAL_PUSH_ERROR \n");
+        return 1;
+    case LEXER_ERR_INVALID_CHARACTER:
+        printf("INVALID_CHARACTER: '%c' at pos: '%zu' \n",
+               token_res.error.character, token_res.error.pos);
+        return 1;
+    case LEXER_ERR_INVALID_FLOAT:
+        printf("LEXER_ERR_INVALID_FLOAT \n");
+        return 1;
+    case LEXER_ERR_UNEXPECTED_EOF:
+        printf("UNEXPECTED_EOF \n");
+        return 1;
+    case LEXER_ERR_UNTERMINATED_CHAR:
+        printf("UNTERMINATED_CHAR \n");
+        return 1;
+    case LEXER_ERR_INVALID_CHAR_LITERAL_SPAN: {
+        printf("INVALID_CHAR_LITERAL_SPAN");
+        return 1;
+    }
+    case LEXER_ERR_UNTERMINATED_STRING:
+        printf("UNTERMINATED_STRING \n");
+        return 1;
+    }
+
+    for (int i = 0; i < token_res.tokens.num_of_tokens; i++) {
+        print_out_token(&token_res.tokens.data[i]);
     }
 
     ParserResult parser_result = parse_tokens(&token_res.tokens);
 
     switch (parser_result.error.status) {
-        case PARSER_OK:
-            printf("[PARSER SUCCESS]\n");
-            break;
-        case PARSER_ERR_UNEXPECTED_TOP_LEVEL:
-            printf("PARSER_ERR_UNEXPECTED_TOP_LEVEL\n");
-            return 1;
-        case PARSER_ERR_UNEXPECTED_EOF:
-            printf("PARSER_ERR_UNEXPECTED_EOF\n");
-            return 1;
+    case PARSER_OK:
+        printf("[PARSER SUCCESS]\n");
+        break;
+    case PARSER_ERR_UNEXPECTED_TOP_LEVEL:
+        printf("PARSER_ERR_UNEXPECTED_TOP_LEVEL\n");
+        return 1;
+    case PARSER_ERR_UNEXPECTED_EOF:
+        printf("PARSER_ERR_UNEXPECTED_EOF\n");
+        return 1;
     }
 
     free_token_vec(&token_res.tokens);

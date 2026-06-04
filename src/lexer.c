@@ -216,6 +216,10 @@ static void handle_number(Lexer* lexer) {
 
     while (isdigit((unsigned char) lexer->current_char) || lexer->current_char == '.') {
         if (lexer->current_char == '.') {
+            if (is_float) {
+                lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_FLOAT);
+                return;
+            }
             is_float = true;
         }
         len += 1;
