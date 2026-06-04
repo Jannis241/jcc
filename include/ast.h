@@ -1,115 +1,116 @@
 #ifndef AST_H
 #define AST_H
 #include "vector.h"
+#include<stdbool.h>
 
-typedef struct AST_EXPR AST_EXPR;
+typedef struct ASTExpr ASTExpr;
 typedef struct {
     char* type;
     char* name;
-} AST_TYPE_NAME;
+} ASTTypeName;
 
-VECTOR_DEFINE(AST_TYPE_NAME*, ASTTypeNameVec)
+VECTOR_DEFINE(ASTTypeName*, ASTTypeNameVec)
 
 typedef enum {
-    EXPRKIND_STRING_LITERAL,
-    EXPRKIND_INT_LITERAL,
-    EXPRKIND_BOOL_LITERAL,
-    EXPRKIND_FLOAT_LITERAL,
-    EXPRKIND_CHAR_LITERAL,
+    AST_EXPR_STRING_LITERAL,
+    AST_EXPR_INT_LITERAL,
+    AST_EXPR_BOOL_LITERAL,
+    AST_EXPR_FLOAT_LITERAL,
+    AST_EXPR_CHAR_LITERAL,
 
-    EXPRKIND_LIST_LITERAL,
+    AST_EXPR_LIST_LITERAL,
 
-    EXPRKIND_STRUCT_LITERAL,
-    EXPRKIND_ENUM_LITERAL,
+    AST_EXPR_STRUCT_LITERAL,
+    AST_EXPR_ENUM_LITERAL,
 
-    EXPRKIND_BINARY,
-    EXPRKIND_UNARY,
-    EXPRKIND_ASSIGN, 
-    EXPRKIND_BINARY_ASSIGN,
-    EXPRKIND_CALL,  
-    EXPRKIND_FIELD_ACCESS,
-    EXPRKIND_VARIABLE,
+    AST_EXPR_BINARY,
+    AST_EXPR_UNARY,
+    AST_EXPR_ASSIGN, 
+    AST_EXPR_BINARY_ASSIGN,
+    AST_EXPR_CALL,  
+    AST_EXPR_FIELD_ACCESS,
+    AST_EXPR_VARIABLE,
 
-    EXPRKIND_GROUPING,   
+    AST_EXPR_GROUPING,   
 } ASTExprKind;
 
 typedef enum {
-    ASTKIND_ROOT,
-    ASTKIND_STMT,
-    ASTKIND_FUNC,
-    ASTKIND_CONST,
-    ASTKIND_EXPR,
-    ASTKIND_STRUCTDEF,
-    ASTKIND_ENUMDEF,
+    AST_ROOT,
+    AST_STMT,
+    AST_FUNCTION,
+    AST_CONST,
+    AST_EXPR,
+    AST_STRUCT_DEF,
+    AST_ENUM_DEF,
 } ASTKind;
 
 typedef enum {
-    STMTKIND_BLOCK,
-    STMTKIND_EXPR,
-    STMTKIND_LET,
-    STMTKIND_IF,
-    STMTKIND_WHILE,
-    STMTKIND_FOR,
-    STMTKIND_RETURN,
-    STMTKIND_BREAK,
-    STMTKIND_CONTINUE,
+    AST_STMT_BLOCK,
+    AST_STMT_EXPR,
+    AST_STMT_LET,
+    AST_STMT_IF,
+    AST_STMT_WHILE,
+    AST_STMT_FOR,
+    AST_STMT_RETURN,
+    AST_STMT_BREAK,
+    AST_STMT_CONTINUE,
 } ASTStmtKind;
 
 
-typedef struct AST_STMT AST_STMT;
+typedef struct ASTStmt ASTStmt;
 
 
-VECTOR_DEFINE(AST_STMT*, ASTStmtVec)
+VECTOR_DEFINE(ASTStmt*, ASTStmtVec)
 
 typedef struct {
     ASTStmtVec statements;
-} AST_STMT_BLOCK;
+} ASTStmtBlock;
 
 typedef struct {
-    AST_EXPR* expr; 
-} AST_STMT_EXPR;
+    ASTExpr* expr; 
+} ASTStmtExpr;
 
 typedef struct {
     char* var_name;
     char* var_type;
-    AST_EXPR* value;
-} AST_STMT_LET;
+    ASTExpr* value;
+} ASTStmtLet;
 
 
 
 typedef struct {
-    AST_EXPR* condition;
-    AST_STMT_BLOCK code_block;
-    int has_else; 
-    AST_STMT_BLOCK optional_else_block;
-} AST_STMT_IF;
+    ASTExpr* condition;
+    ASTStmtBlock code_block;
+    bool has_else; 
+    ASTStmtBlock optional_else_block;
+} ASTStmtIf;
 
 typedef struct {
-    AST_EXPR* condition;
-    AST_STMT_BLOCK code_block;
-} AST_STMT_WHILE;
+    ASTExpr* condition;
+    ASTStmtBlock code_block;
+} ASTStmtWhile;
 
 typedef struct {
     char* var_name;
-    AST_EXPR* condition;
-    AST_STMT_BLOCK code_block;
-} AST_STMT_FOR;
+    ASTExpr* condition;
+    ASTStmtBlock code_block;
+} ASTStmtFor;
 
 typedef struct {
-    int has_return_value;
-    AST_EXPR* value; // kann auch void sein
-} AST_STMT_RETURN;
+    bool has_return_value;
+    ASTExpr* value; // kann auch void sein
+} ASTStmtReturn;
 
-struct AST_STMT {
+struct ASTStmt {
     ASTStmtKind kind;
     union {
-        AST_STMT_BLOCK block_stmt;
-        AST_STMT_EXPR expr_stmt;
-        AST_STMT_LET let_stmt;
-        AST_STMT_IF if_stmt;
-        AST_STMT_WHILE while_stmt;
-        AST_STMT_FOR for_stmt;
-        AST_STMT_RETURN return_stmt;
+        ASTStmtBlock block_stmt;
+        ASTStmtExpr expr_stmt;
+        ASTStmtLet let_stmt;
+        ASTStmtIf if_stmt;
+        ASTStmtWhile while_stmt;
+        ASTStmtFor for_stmt;
+        ASTStmtReturn return_stmt;
         // break und continue brauchen keine value
     } value;
 };
@@ -120,21 +121,21 @@ struct AST_STMT {
 
 typedef struct {
     char* name;
-    AST_EXPR* expr;
-} AST_NAME_EXPR;
+    ASTExpr* expr;
+} ASTNameExpr;
 
-VECTOR_DEFINE(AST_NAME_EXPR*, ASTNameExprVec)
+VECTOR_DEFINE(ASTNameExpr*, ASTNameExprVec)
 
 typedef struct {
     char* enum_name;
     char* case_name;
-} EXPR_ENUM_LITERAL;
+} ASTExprEnumLiteral;
 
 
 typedef struct {
     char* name;
     ASTNameExprVec fields; // field name, expr => x: 2+3 -> x (field name) 2+3 (value -> expr)
-} EXPR_STRUCT_LITERAL;
+} ASTExprStructLiteral;
 
 typedef enum {
     BINOP_ADD,
@@ -153,62 +154,62 @@ typedef enum {
 } BinOp;
 
 typedef enum {
-    Neg,
-    Not,
+    UNARY_NEG,
+    UNARY_NOT,
 } UnaryOp;
 
 typedef struct {
-    AST_EXPR* lhs; 
-    AST_EXPR* rhs; 
+    ASTExpr* lhs; 
+    ASTExpr* rhs; 
     BinOp op;
-} EXPR_BINARY;
+} ASTExprBinary;
 
 typedef struct {
-    AST_EXPR* expr; 
+    ASTExpr* expr; 
     UnaryOp op;
-} EXPR_UNARY;
+} ASTExprUnary;
 
 typedef struct {
-    AST_EXPR* target;
-    AST_EXPR* value;
-} EXPR_ASSIGN;
+    ASTExpr* target;
+    ASTExpr* value;
+} ASTExprAssign;
 
 typedef struct {
-    AST_EXPR* target;
+    ASTExpr* target;
     BinOp op;
-    AST_EXPR* value;
-} EXPR_BINARY_ASSIGN;
+    ASTExpr* value;
+} ASTExprBinaryAssign;
 
 
-VECTOR_DEFINE(AST_EXPR*, AstExprVec)
+VECTOR_DEFINE(ASTExpr*, ASTExprVec)
 
-typedef struct EXPR_CALL {
+typedef struct ASTExprCall {
     char* function_name;
-    AstExprVec params;
-} EXPR_CALL;
+    ASTExprVec params;
+} ASTExprCall;
 
 
-typedef struct EXPR_FIELD_ACCESS {
-    AST_EXPR* obj;
+typedef struct ASTExprFieldAccess {
+    ASTExpr* obj;
     char* field_name;
-} EXPR_FIELD_ACCESS;
+} ASTExprFieldAccess;
 
 
-struct AST_EXPR{
+struct ASTExpr{
     ASTExprKind kind;
     union {
         char* literal_value;
-        EXPR_STRUCT_LITERAL struct_literal;
-        EXPR_ENUM_LITERAL enum_literal;
-        EXPR_BINARY binary;
-        EXPR_UNARY unary;
-        EXPR_ASSIGN assign;
-        EXPR_BINARY_ASSIGN bin_assign;
-        EXPR_CALL call;
-        EXPR_FIELD_ACCESS field_access;
-        AST_EXPR* grouping_inner;
+        ASTExprStructLiteral struct_literal;
+        ASTExprEnumLiteral enum_literal;
+        ASTExprBinary binary;
+        ASTExprUnary unary;
+        ASTExprAssign assign;
+        ASTExprBinaryAssign bin_assign;
+        ASTExprCall call;
+        ASTExprFieldAccess field_access;
+        ASTExpr* grouping_inner;
         char* variable_name;
-        AstExprVec list_literal;
+        ASTExprVec list_literal;
     } value;
 } ;
 
@@ -216,48 +217,48 @@ struct AST_EXPR{
 typedef struct {
     char *name;
     char *type;
-    AST_EXPR* value;
-} AST_CONST;
+    ASTExpr* value;
+} ASTConst;
 
 VECTOR_DEFINE(char*, StrVec)
 typedef struct {
     char* name;
     StrVec cases;
-} AST_ENUMDEF;
+} ASTEnumDef;
 
 
 typedef struct {
     char* name;
     ASTTypeNameVec fields; 
-} AST_STRUCTDEF;
+} ASTStructDef;
 
 typedef struct {
     char* name;
     char* return_type;
     ASTTypeNameVec params;
-    AST_STMT_BLOCK block;
-} AST_FUNCTION;
+    ASTStmtBlock block;
+} ASTFunction;
 
-VECTOR_DEFINE(AST_FUNCTION*, ASTFunctionVec)
-VECTOR_DEFINE(AST_STRUCTDEF*, ASTStructVec)
-VECTOR_DEFINE(AST_ENUMDEF*, ASTEnumVec)
-VECTOR_DEFINE(AST_CONST*, ASTConstVec)
+VECTOR_DEFINE(ASTFunction*, ASTFunctionVec)
+VECTOR_DEFINE(ASTStructDef*, ASTStructDefVec)
+VECTOR_DEFINE(ASTEnumDef*, ASTEnumDefVec)
+VECTOR_DEFINE(ASTConst*, ASTConstVec)
 typedef struct {
     ASTFunctionVec functions;
-    ASTStructVec struct_defs;
-    ASTEnumVec enum_defs;
+    ASTStructDefVec struct_defs;
+    ASTEnumDefVec enum_defs;
     ASTConstVec  constants;
-} AST_ROOT;
+} ASTRoot;
 
 typedef struct {
     ASTKind kind;
     union {
-        AST_ROOT root;
-        AST_EXPR expr;
-        AST_STMT stmt;
-        AST_STRUCTDEF struct_def;
-        AST_ENUMDEF enum_def;
-        AST_FUNCTION function;
+        ASTRoot root;
+        ASTExpr expr;
+        ASTStmt stmt;
+        ASTStructDef struct_def;
+        ASTEnumDef enum_def;
+        ASTFunction function;
     } value;
 } ASTNode;
 
