@@ -8,62 +8,61 @@
 
 const char* token_kind_name(TokenKind kind) {
     switch (kind) {
-        case True: return "True";
-        case False: return "False";
-        case Ident: return "Ident";
-        case IntNumber: return "IntNumber";
-        case FloatNumber: return "FloatNumber";
-        case StringLiteral: return "StringLiteral";
-        case Char: return "Char";
-        case If: return "If";
-        case Else: return "Else";
-        case Return: return "Return";
-        case While: return "While";
-        case Let: return "Let";
-        case Fn: return "Fn";
-        case In: return "In";
-        case Struct: return "Struct";
-        case Const: return "Const";
-        case For: return "For";
-        case Continue: return "Continue";
-        case Break: return "Break";
-        case Enum: return "Enum";
-        case Underscore: return "Underscore";
-        case AmpAmp: return "AmpAmp";
-        case Amp: return "Amp";
-        case Pipe: return "Pipe";
-        case PipePipe: return "PipePipe";
-        case LParen: return "LParen";
-        case RParen: return "RParen";
-        case LBrace: return "LBrace";
-        case RBrace: return "RBrace";
-        case Bang: return "Bang";
-        case LBracket: return "LBracket";
-        case RBracket: return "RBracket";
-        case Comma: return "Comma";
-        case Semicolon: return "Semicolon";
-        case Colon: return "Colon";
-        case Dot: return "Dot";
-        case Eq: return "Eq";
-        case PlusEq: return "PlusEq";
-        case MinusEq: return "MinusEq";
-        case StarEq: return "StarEq";
-        case SlashEq: return "SlashEq";
-        case FatArrow: return "FatArrow";
-        case PlusPlus: return "PlusPlus";
-        case MinusMinus: return "MinusMinus";
-        case EqEq: return "EqEq";
-        case BangEq: return "BangEq";
-        case Lt: return "Lt";
-        case LtEq: return "LtEq";
-        case Gt: return "Gt";
-        case GtEq: return "GtEq";
-        case Plus: return "Plus";
-        case Minus: return "Minus";
-        case Star: return "Star";
-        case Slash: return "Slash";
-        case Percent: return "Percent";
-        case Eof: return "Eof";
+        case TOKEN_TRUE: return "True";
+        case TOKEN_FALSE: return "False";
+        case TOKEN_IDENT: return "Ident";
+        case TOKEN_INT: return "IntNumber";
+        case TOKEN_FLOAT: return "FloatNumber";
+        case TOKEN_STRING: return "StringLiteral";
+        case TOKEN_CHAR: return "Char";
+        case TOKEN_IF: return "If";
+        case TOKEN_ELSE: return "Else";
+        case TOKEN_RETURN: return "Return";
+        case TOKEN_WHILE: return "While";
+        case TOKEN_LET: return "Let";
+        case TOKEN_FN: return "Fn";
+        case TOKEN_IN: return "In";
+        case TOKEN_STRUCT: return "Struct";
+        case TOKEN_CONST: return "Const";
+        case TOKEN_FOR: return "For";
+        case TOKEN_CONTINUE: return "Continue";
+        case TOKEN_BREAK: return "Break";
+        case TOKEN_ENUM: return "Enum";
+        case TOKEN_AMP_AMP: return "AmpAmp";
+        case TOKEN_AMP: return "Amp";
+        case TOKEN_PIPE: return "Pipe";
+        case TOKEN_PIPE_PIPE: return "PipePipe";
+        case TOKEN_LPARENT: return "LParen";
+        case TOKEN_RPARENT: return "RParen";
+        case TOKEN_LBRACE: return "LBrace";
+        case TOKEN_RBRACE: return "RBrace";
+        case TOKEN_BANG: return "Bang";
+        case TOKEN_LBRACKET: return "LBracket";
+        case TOKEN_RBRACKET: return "RBracket";
+        case TOKEN_COMMA: return "Comma";
+        case TOKEN_SEMICOLON: return "Semicolon";
+        case TOKEN_COLON: return "Colon";
+        case TOKEN_DOT: return "Dot";
+        case TOKEN_EQ: return "Eq";
+        case TOKEN_PLUSEQ: return "PlusEq";
+        case TOKEN_MINUSEQ: return "MinusEq";
+        case TOKEN_STAREQ: return "StarEq";
+        case TOKEN_SLASHEQ: return "SlashEq";
+        case TOKEN_FATARROW: return "FatArrow";
+        case TOKEN_PLUSPLUS: return "PlusPlus";
+        case TOKEN_MINUSMINUS: return "MinusMinus";
+        case TOKEN_EQEQ: return "EqEq";
+        case TOKEN_BANGEQ: return "BangEq";
+        case TOKEN_LT: return "Lt";
+        case TOKEN_LTEQ: return "LtEq";
+        case TOKEN_GT: return "Gt";
+        case TOKEN_GTEQ: return "GtEq";
+        case TOKEN_PLUS: return "Plus";
+        case TOKEN_MINUS: return "Minus";
+        case TOKEN_STAR: return "Star";
+        case TOKEN_SLASH: return "Slash";
+        case TOKEN_PERCENT: return "Percent";
+        case TOKEN_EOF: return "Eof";
     }
 
     return "Unknown";
@@ -156,7 +155,7 @@ static void push_lexer_token(Lexer* lexer, Token token) {
 }
 
 static char peek(Lexer* lexer) {
-    if (lexer->pos + 1 >= strlen(lexer->input)) {
+    if (lexer->pos + 1 >= lexer->input_len) {
         return '\0';
     }
     return lexer->input[lexer->pos + 1];
@@ -201,7 +200,7 @@ static void handle_char(Lexer* lexer){
     c[0] = lexer->current_char;
     c[1] = '\0';
 
-    push_lexer_token(lexer, (Token) {.kind = Char, .value = c});
+    push_lexer_token(lexer, (Token) {.kind = TOKEN_CHAR, .value = c});
     advance(lexer);
     advance(lexer);
 }
@@ -235,10 +234,10 @@ static void handle_number(Lexer* lexer) {
 
 
     if (is_float) {
-       push_lexer_token(lexer, (Token) {.kind = FloatNumber, .value = buffer});
+       push_lexer_token(lexer, (Token) {.kind = TOKEN_FLOAT, .value = buffer});
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = IntNumber, .value = buffer});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_INT, .value = buffer});
     }
     free(buffer);
 }
@@ -268,7 +267,7 @@ static void handle_string(Lexer* lexer) {
     memcpy(buffer, lexer->input+start, len);
     buffer[len] = '\0';
 
-    push_lexer_token(lexer, (Token) {.kind = StringLiteral, .value = buffer});
+    push_lexer_token(lexer, (Token) {.kind = TOKEN_STRING, .value = buffer});
     free(buffer);
     advance(lexer);
 }
@@ -290,37 +289,37 @@ static void handle_ident(Lexer* lexer) {
     ident[ident_len] = '\0';
 
     if (strcmp(ident, "if") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = If, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_IF, .value = ident});
     } else if (strcmp(ident, "else") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Else, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_ELSE, .value = ident});
     } else if (strcmp(ident, "return") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Return, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_RETURN, .value = ident});
     } else if (strcmp(ident, "while") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = While, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_WHILE, .value = ident});
     } else if (strcmp(ident, "true") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = True, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_TRUE, .value = ident});
     } else if (strcmp(ident, "false") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = False, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_FALSE, .value = ident});
     } else if (strcmp(ident, "let") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Let, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_LET, .value = ident});
     } else if (strcmp(ident, "fn") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Fn, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_FN, .value = ident});
     } else if (strcmp(ident, "in") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = In, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_IN, .value = ident});
     } else if (strcmp(ident, "struct") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Struct, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_STRUCT, .value = ident});
     } else if (strcmp(ident, "const") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Const, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_CONST, .value = ident});
     } else if (strcmp(ident, "for") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = For, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_FOR, .value = ident});
     } else if (strcmp(ident, "continue") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Continue, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_CONTINUE, .value = ident});
     } else if (strcmp(ident, "break") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Break, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_BREAK, .value = ident});
     } else if (strcmp(ident, "enum") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = Enum, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_ENUM, .value = ident});
     } else {
-        push_lexer_token(lexer, (Token) {.kind = Ident, .value = ident});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_IDENT, .value = ident});
     }
     free(ident);
 }
@@ -329,11 +328,11 @@ static void handle_ident(Lexer* lexer) {
 static void handle_star(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = StarEq, .value = "*="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_STAREQ, .value = "*="});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Star, .value = "*"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_STAR, .value = "*"});
         advance(lexer);
     }
 }
@@ -341,11 +340,11 @@ static void handle_star(Lexer* lexer){
 static void handle_pipe(Lexer* lexer){
     if (peek(lexer) == '|') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = PipePipe, .value = "||"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_PIPE_PIPE, .value = "||"});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Pipe, .value = "|"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_PIPE, .value = "|"});
         advance(lexer);
     }
 }
@@ -353,11 +352,11 @@ static void handle_pipe(Lexer* lexer){
 static void handle_amp(Lexer* lexer){
     if (peek(lexer) == '&') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = AmpAmp, .value = "&&"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_AMP_AMP, .value = "&&"});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Amp, .value = "&"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_AMP, .value = "&"});
         advance(lexer);
     }
 }
@@ -366,11 +365,11 @@ static void handle_amp(Lexer* lexer){
 static void handle_bang(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = BangEq, .value = "!="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_BANGEQ, .value = "!="});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Bang, .value = "!"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_BANG, .value = "!"});
         advance(lexer);
     }
 }
@@ -388,33 +387,33 @@ static void handle_slash(Lexer* lexer){
     }
     else if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = SlashEq, .value = "/="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_SLASHEQ, .value = "/="});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Slash, .value = "/"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_SLASH, .value = "/"});
         advance(lexer);
     }
 }
 static void handle_gt(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = GtEq, .value = ">="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_GTEQ, .value = ">="});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Gt, .value = ">"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_GT, .value = ">"});
         advance(lexer);
     }
 }
 static void handle_lt(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = LtEq, .value = "<="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_LTEQ, .value = "<="});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Lt, .value = "<"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_LT, .value = "<"});
         advance(lexer);
     }
 }
@@ -422,16 +421,16 @@ static void handle_lt(Lexer* lexer){
 static void handle_eq(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = EqEq, .value = "=="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_EQEQ, .value = "=="});
         advance(lexer);
     }
     else if (peek(lexer) == '>') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = FatArrow, .value = "=>"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_FATARROW, .value = "=>"});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Eq, .value = "="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_EQ, .value = "="});
         advance(lexer);
     }
 }
@@ -439,16 +438,16 @@ static void handle_eq(Lexer* lexer){
 static void handle_plus(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = PlusEq, .value = "+="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_PLUSEQ, .value = "+="});
         advance(lexer);
     }
     else if (peek(lexer) == '+') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = PlusPlus, .value = "++"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_PLUSPLUS, .value = "++"});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Plus, .value = "+"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_PLUS, .value = "+"});
         advance(lexer);
     }
 }
@@ -456,16 +455,16 @@ static void handle_plus(Lexer* lexer){
 static void handle_minus(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = MinusEq, .value = "-="});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_MINUSEQ, .value = "-="});
         advance(lexer);
     }
     else if (peek(lexer) == '-') {
         advance(lexer);
-        push_lexer_token(lexer, (Token) {.kind = MinusMinus, .value = "--"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_MINUSMINUS, .value = "--"});
         advance(lexer);
     }
     else {
-        push_lexer_token(lexer, (Token) {.kind = Minus, .value = "-"});
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_MINUS, .value = "-"});
         advance(lexer);
     }
 }
@@ -479,11 +478,11 @@ static void generate_next_token(Lexer* lexer) {
 
     switch (lexer->current_char)  {
         case ',':
-            push_lexer_token(lexer, (Token) {.kind=Comma, .value = ","});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_COMMA, .value = ","});
             advance(lexer);
             break;
         case '%':
-            push_lexer_token(lexer, (Token) {.kind=Percent, .value = "%"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_PERCENT, .value = "%"});
             advance(lexer);
             break;
         case '>':
@@ -508,22 +507,22 @@ static void generate_next_token(Lexer* lexer) {
             handle_eq(lexer);
             break;
         case ':':
-            push_lexer_token(lexer, (Token) {.kind=Colon, .value = ":"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_COLON, .value = ":"});
             advance(lexer);
             break;
         case ';':
-            push_lexer_token(lexer, (Token) {.kind=Semicolon, .value = ";"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_SEMICOLON, .value = ";"});
             advance(lexer);
             break;
         case '.':
-            push_lexer_token(lexer, (Token) {.kind=Dot, .value = "."});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_DOT, .value = "."});
             advance(lexer);
             break;
         case '!':
             handle_bang(lexer);
             break;
         case '}':
-            push_lexer_token(lexer, (Token) {.kind=RBrace, .value = "}"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_RBRACE, .value = "}"});
             advance(lexer);
             break;
         case '"':
@@ -533,23 +532,23 @@ static void generate_next_token(Lexer* lexer) {
             handle_char(lexer);
             break;
         case '{':
-            push_lexer_token(lexer, (Token) {.kind=LBrace, .value = "{"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_LBRACE, .value = "{"});
             advance(lexer);
             break;
         case ']':
-            push_lexer_token(lexer, (Token) {.kind=RBracket, .value = "]"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_RBRACKET, .value = "]"});
             advance(lexer);
             break;
         case '[':
-            push_lexer_token(lexer, (Token) {.kind=LBracket, .value = "["});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_LBRACKET, .value = "["});
             advance(lexer);
             break;
         case ')':
-            push_lexer_token(lexer, (Token) {.kind=RParen, .value = ")"});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_RPARENT, .value = ")"});
             advance(lexer);
             break;
         case '(':
-            push_lexer_token(lexer, (Token) {.kind=LParen, .value = "("});
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_LPARENT, .value = "("});
             advance(lexer);
             break;
         case '|':
@@ -572,7 +571,7 @@ static void generate_next_token(Lexer* lexer) {
 }
 
 LexResult generate_tokens(const char* str_input) {
-    Lexer lexer = {.pos = 0, .current_char = *str_input, .input = str_input, .tokens = create_token_Vec()};
+    Lexer lexer = {.pos = 0, .current_char = *str_input, .input = str_input, .tokens = create_token_Vec(), .input_len = strlen(str_input)};
     lexer.err_status = gen_lexerror(&lexer, LEXER_OK);
 
 
@@ -584,7 +583,7 @@ LexResult generate_tokens(const char* str_input) {
         }
     }
 
-    push_lexer_token(&lexer, (Token) {.kind=Eof, .value = "EOF"});
+    push_lexer_token(&lexer, (Token) {.kind=TOKEN_EOF, .value = "EOF"});
 
     return (LexResult) {.tokens = lexer.tokens, .error = lexer.err_status};
 }

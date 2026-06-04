@@ -9,4 +9,6 @@ struct test {
 
 fn main() {
     let b = true;
+
+    let _c = false;
 }

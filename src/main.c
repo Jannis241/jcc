@@ -67,9 +67,6 @@ int main(int argc, char *argv[]) {
         case LEXER_ERR_UNEXPECTED_EOF:
             printf("UNEXPECTED_EOF \n");
             return 1;
-        case LEXER_ERR_UNTERMINATED_BLOCK:
-            printf("UNTERMINATED_BLOCK \n");
-            return 1;
         case LEXER_ERR_UNTERMINATED_CHAR:
             printf("UNTERMINATED_CHAR \n");
             return 1;
