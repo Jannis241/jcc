@@ -42,6 +42,7 @@ const char* token_kind_name(TokenKind kind) {
         case TOKEN_COMMA: return "Comma";
         case TOKEN_SEMICOLON: return "Semicolon";
         case TOKEN_COLON: return "Colon";
+        case TOKEN_COLONCOLON: return "ColonColon";
         case TOKEN_DOT: return "Dot";
         case TOKEN_EQ: return "Eq";
         case TOKEN_PLUSEQ: return "PlusEq";
@@ -513,6 +514,17 @@ static void handle_minus(Lexer* lexer){
         advance(lexer);
     }
 }
+static void handle_colon(Lexer* lexer){
+    if (peek(lexer) == ':') {
+        advance(lexer);
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_COLONCOLON, .value = "::"});
+        advance(lexer);
+    }
+    else {
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_COLON, .value = ":"});
+        advance(lexer);
+    }
+}
 
 static void generate_next_token(Lexer* lexer) {
     skip_whitespaces(lexer);
@@ -552,8 +564,7 @@ static void generate_next_token(Lexer* lexer) {
             handle_eq(lexer);
             break;
         case ':':
-            push_lexer_token(lexer, (Token) {.kind=TOKEN_COLON, .value = ":"});
-            advance(lexer);
+            handle_colon(lexer);
             break;
         case ';':
             push_lexer_token(lexer, (Token) {.kind=TOKEN_SEMICOLON, .value = ";"});

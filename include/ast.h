@@ -3,13 +3,35 @@
 #include "vector.h"
 #include<stdbool.h>
 
-typedef struct ASTExpr ASTExpr;
 typedef struct {
     char* type;
     char* name;
 } ASTTypeName;
 
 VECTOR_DEFINE(ASTTypeName*, ASTTypeNameVec)
+
+typedef struct ASTExpr ASTExpr;
+
+typedef enum {
+    BINOP_ADD,
+    BINOP_SUB,
+    BINOP_MUL,
+    BINOP_DIV,
+    BINOP_EQ,
+    BINOP_NE,
+    BINOP_LT,
+    BINOP_GT,
+    BINOP_GE,
+    BINOP_LE,
+
+    BINOP_AND,
+    BINOP_OR,
+} BinOp;
+
+typedef enum {
+    UNARY_NEG,
+    UNARY_NOT,
+} UnaryOp;
 
 typedef enum {
     AST_EXPR_STRING_LITERAL,
@@ -25,8 +47,6 @@ typedef enum {
 
     AST_EXPR_BINARY,
     AST_EXPR_UNARY,
-    AST_EXPR_ASSIGN, 
-    AST_EXPR_BINARY_ASSIGN,
     AST_EXPR_CALL,  
     AST_EXPR_FIELD_ACCESS,
     AST_EXPR_VARIABLE,
@@ -53,6 +73,8 @@ typedef enum {
     AST_STMT_RETURN,
     AST_STMT_BREAK,
     AST_STMT_CONTINUE,
+    AST_STMT_ASSIGN,
+    AST_STMT_BINARY_ASSIGN,
 } ASTStmtKind;
 
 
@@ -100,6 +122,17 @@ typedef struct {
     ASTExpr* value; // kann auch void sein
 } ASTStmtReturn;
 
+typedef struct {
+    ASTExpr* target;
+    ASTExpr* value;
+} ASTStmtAssign;
+
+typedef struct {
+    ASTExpr* target;
+    BinOp op;
+    ASTExpr* value;
+} ASTStmtBinaryAssign;
+
 struct ASTStmt {
     ASTStmtKind kind;
     union {
@@ -107,6 +140,8 @@ struct ASTStmt {
         ASTStmtExpr expr_stmt;
         ASTStmtLet let_stmt;
         ASTStmtIf if_stmt;
+        ASTStmtAssign assign;
+        ASTStmtBinaryAssign bin_assign;
         ASTStmtWhile while_stmt;
         ASTStmtFor for_stmt;
         ASTStmtReturn return_stmt;
@@ -136,26 +171,6 @@ typedef struct {
     ASTNameExprVec fields; // field name, expr => x: 2+3 -> x (field name) 2+3 (value -> expr)
 } ASTExprStructLiteral;
 
-typedef enum {
-    BINOP_ADD,
-    BINOP_SUB,
-    BINOP_MUL,
-    BINOP_DIV,
-    BINOP_EQ,
-    BINOP_NE,
-    BINOP_LT,
-    BINOP_GT,
-    BINOP_GE,
-    BINOP_LE,
-
-    BINOP_AND,
-    BINOP_OR,
-} BinOp;
-
-typedef enum {
-    UNARY_NEG,
-    UNARY_NOT,
-} UnaryOp;
 
 typedef struct {
     ASTExpr* lhs; 
@@ -168,16 +183,6 @@ typedef struct {
     UnaryOp op;
 } ASTExprUnary;
 
-typedef struct {
-    ASTExpr* target;
-    ASTExpr* value;
-} ASTExprAssign;
-
-typedef struct {
-    ASTExpr* target;
-    BinOp op;
-    ASTExpr* value;
-} ASTExprBinaryAssign;
 
 
 VECTOR_DEFINE(ASTExpr*, ASTExprVec)
@@ -202,8 +207,6 @@ struct ASTExpr{
         ASTExprEnumLiteral enum_literal;
         ASTExprBinary binary;
         ASTExprUnary unary;
-        ASTExprAssign assign;
-        ASTExprBinaryAssign bin_assign;
         ASTExprCall call;
         ASTExprFieldAccess field_access;
         ASTExpr* grouping_inner;

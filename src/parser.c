@@ -1,7 +1,11 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
-#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static ASTExpr* parse_expr(Parser* parser);
 
 static bool expect(Parser *parser, TokenKind kind) {
     if (parser->current_token->kind != kind) {
@@ -14,6 +18,9 @@ static bool expect(Parser *parser, TokenKind kind) {
 static Token *peek(Parser *parser) {
     return &parser->tokens->data[parser->pos + 1];
 }
+static Token *peek2(Parser *parser) {
+    return &parser->tokens->data[parser->pos + 2];
+}
 
 static void advance(Parser *parser) {
     parser->pos += 1;
@@ -21,16 +28,191 @@ static void advance(Parser *parser) {
 }
 
 
+
+static ASTExpr* parse_primary(Parser *parser) {
+    ASTExpr* node = malloc(sizeof(ASTExpr));
+    switch(parser->current_token->kind) {
+        case TOKEN_INT:
+            node = &(ASTExpr){.kind = AST_EXPR_INT_LITERAL, .value.literal_value = parser->current_token->value};   
+            advance(parser);
+        break;
+        case TOKEN_CHAR:
+            node = &(ASTExpr){.kind = AST_EXPR_CHAR_LITERAL, .value.literal_value = parser->current_token->value};   
+            advance(parser);
+        break;
+        case TOKEN_STRING:
+            node = &(ASTExpr){.kind = AST_EXPR_STRING_LITERAL, .value.literal_value = parser->current_token->value};   
+            advance(parser);
+        break;
+        case TOKEN_FLOAT:
+            node = &(ASTExpr){.kind = AST_EXPR_FLOAT_LITERAL, .value.literal_value = parser->current_token->value};   
+            advance(parser);
+        break;
+        case TOKEN_TRUE:
+            node = &(ASTExpr){.kind = AST_EXPR_STRING_LITERAL, .value.literal_value = parser->current_token->value};   
+            advance(parser);
+        break;
+        case TOKEN_FALSE:
+            node = &(ASTExpr){.kind = AST_EXPR_BOOL_LITERAL, .value.literal_value = parser->current_token->value};   
+            advance(parser);
+        break;
+        case TOKEN_IDENT:
+            // ident { ==> struct
+            if (peek(parser)->kind == TOKEN_LBRACE) {
+                // parsing struct literal 
+                ASTExprStructLiteral struct_literal = {.name = parser->current_token->value};
+
+                ASTNameExprVec* fields = malloc(sizeof(ASTNameExprVec));
+                ASTNameExprVec_init(fields);
+
+
+                advance(parser); // auf dem {
+                advance(parser); // eventuell auf einem field_name, kann aber auch schon } sein. 
+
+                while (1) {
+                    if (parser->current_token->kind == TOKEN_RBRACE) {
+                        advance(parser);
+                        break;
+                    }
+                    if (!expect(parser, TOKEN_IDENT)) return NULL;
+                    char* field_name = parser->current_token->value;
+                    advance(parser);
+
+                    if (!expect(parser, TOKEN_COLON)) return NULL;
+                    advance(parser);
+
+                    if (!expect(parser, TOKEN_IDENT)) return NULL;
+                    advance(parser);
+                    ASTExpr* value = parse_expr(parser);
+
+                    ASTNameExprVec_push(fields, &(ASTNameExpr) {.name = field_name, .expr = value});
+
+                    if (parser->current_token->kind == TOKEN_RBRACE) {
+                        advance(parser);
+                        break;
+                    }
+                    if (!expect(parser, TOKEN_COMMA)) return NULL;
+                    advance(parser);
+                }
+                node = &(ASTExpr){.kind = AST_EXPR_STRUCT_LITERAL, .value.struct_literal = struct_literal};   
+
+
+            }
+            // ident::ident ==> enum
+            else if (peek(parser)->kind == TOKEN_COLONCOLON && peek2(parser)->kind == TOKEN_IDENT) {
+                char* enum_name = parser->current_token->value; 
+                advance(parser);
+                advance(parser);
+                char* case_name = parser->current_token->value; 
+                ASTExprEnumLiteral elit = {.enum_name = enum_name, .case_name = case_name};
+                node = &(ASTExpr){.kind = AST_EXPR_ENUM_LITERAL, .value.enum_literal = elit};   
+                advance(parser);
+            }
+            // ident ==> variable
+            else {
+                node = &(ASTExpr){.kind = AST_EXPR_VARIABLE, .value.variable_name = parser->current_token->value};   
+            }
+        break;
+        case TOKEN_LPARENT:
+            advance(parser);
+            ASTExpr* inner = parse_expr(parser);
+            if (!expect(parser, TOKEN_RPARENT)) return NULL;
+            advance(parser);
+
+
+        break;
+        case TOKEN_LBRACKET:
+            advance(parser);
+            ASTExprVec elements;
+            ASTExprVec_init(&elements);
+
+            if (parser->current_token->kind != TOKEN_RBRACKET) {
+                ASTExprVec_push(&elements, parse_expr(parser));
+
+                while(parser->current_token->kind == TOKEN_COMMA) {
+                    advance (parser);
+                    ASTExprVec_push(&elements, parse_expr(parser));
+                }
+            }
+            expect(parser, TOKEN_RBRACKET);
+            advance(parser);
+            node = &(ASTExpr){.kind = AST_EXPR_LIST_LITERAL, .value.list_literal = elements};   
+
+        break;
+        default: 
+            parser->parser_error = (ParserError){.got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_EXPR_START} ;
+            return NULL;
+    }
+    return node;
+}
+
+// static ASTExpr* parse_equality(Parser *parser) {
+//
+// }Vk
+
+static ASTExpr* parse_and(Parser *parser) {
+    ASTExpr* lhs = parse_primary(parser);
+
+    if (lhs == NULL) {
+        return lhs;
+    }
+
+    while (parser->current_token->kind == TOKEN_AMP_AMP) {
+        advance(parser);
+        ASTExpr* rhs = parse_primary(parser);
+        ASTExprBinary expr_bin = {.lhs = lhs, .rhs = rhs, .op = BINOP_AND};
+        ASTExpr new_lhs; 
+
+        new_lhs.kind = AST_EXPR_BINARY;
+        new_lhs.value.binary.lhs = lhs;
+        new_lhs.value.binary.rhs = rhs;
+        new_lhs.value.binary.op = BINOP_AND;
+
+    }
+    return lhs;
+}
+
+static ASTExpr* parse_or(Parser *parser) {
+    ASTExpr* lhs = parse_and(parser);
+
+    if (lhs == NULL) {
+        return lhs;
+    }
+
+    while (parser->current_token->kind == TOKEN_PIPE_PIPE) {
+        advance(parser);
+        ASTExpr* rhs = parse_and(parser);
+        ASTExprBinary expr_bin = {.lhs = lhs, .rhs = rhs, .op = BINOP_OR};
+        ASTExpr new_lhs; 
+
+        new_lhs.kind = AST_EXPR_BINARY;
+        new_lhs.value.binary.lhs = lhs;
+        new_lhs.value.binary.rhs = rhs;
+        new_lhs.value.binary.op = BINOP_OR;
+
+    }
+    return lhs;
+}
+
+static ASTExpr* parse_expr(Parser *parser) {
+    ASTExpr* node = parse_or(parser);
+    return node;
+}
+
+// -----------------------------
+//          Alle Top level 
+// -----------------------------
+
 static void parse_fn(Parser *parser) {
 
 }
 
-static ASTExpr* parse_expr(Parser *parser) {
-
-}
-
 static void parse_const(Parser *parser) {
+
     if (!expect(parser, TOKEN_IDENT)) return;
+    // V1 zeigt einfach direkt auf die value,
+    // da TokenVec in main eh lang genug lebt
+    // (könnte man optimieren)
     char* name = parser->current_token->value;
     advance(parser);
 
@@ -49,8 +231,18 @@ static void parse_const(Parser *parser) {
     if (!expect(parser, TOKEN_SEMICOLON)) return;
     advance(parser);
 
-    ASTConst c = {.value = value, .name = name, .type = type};
-    ASTConstVec_push(&parser->ast.constants, &c);
+    // memory auf dem heap allocaten, damit diese constant
+    // länger lebt als eine lokale stack variable (lifetimes)
+    ASTConst *c = malloc(sizeof *c);
+
+    // nicht sauber aber für v1 okay
+    if (c == NULL) {
+        printf("Malloc failed in parse_const() \n");
+        exit(1);
+    }
+    *c = (ASTConst){.value = value, .name = name, .type = type};
+
+    ASTConstVec_push(&parser->ast.constants, c);
 }
 
 static void parse_struct(Parser *parser) {
@@ -61,6 +253,7 @@ static void parse_enum(Parser *parser) {
 }
 
 
+// entry functionj
 ParserResult parse_tokens(const TokenVec* tokens) {
     ASTConstVec const_vec;
     ASTConstVec_init(&const_vec);
