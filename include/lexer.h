@@ -71,7 +71,7 @@ typedef enum {
 
 typedef struct {
     TokenKind kind;
-    const char *value;
+    char *value;
 } Token;
 
 typedef struct {
