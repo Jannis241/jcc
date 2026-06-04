@@ -83,6 +83,29 @@ else
 Q := @
 endif
 
+ASMS := $(patsubst %.c,$(BUILD_DIR)/%.s,$(SRCS))
+SO_PATH := $(BIN_DIR)/$(MODE)/lib$(TARGET).so
+
+.PHONY: asm
+asm: $(ASMS)
+
+$(BUILD_DIR)/%.s: %.c
+	@echo "ASM $<"
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -S $< -o $@
+
+.PHONY: shared
+shared: CFLAGS += -fPIC
+shared: $(SO_PATH)
+
+$(SO_PATH): $(OBJS)
+	@echo "SO  $@"
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(CC) -shared $(OBJS) $(LDFLAGS) $(LDLIBS) -o $@
+
+.PHONY: files
+files: all asm shared
+
 .PHONY: all
 all: check-sources $(TARGET_PATH)
 

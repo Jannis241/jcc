@@ -1,6 +1,5 @@
 Lexer
 1. string und char escapes implementieren
-2. Klar festlegen wer die token werte speichert und besitzt: mit copy token value, owner ship mit kopie, slice aus dem input mit start/len?
 
 AST
 1. Überlegen ob ich wirklich das modell mache mit root und alles ist dann ein ASTNode oder ob ich einfach einen ast

@@ -173,6 +173,32 @@ static void skip_whitespaces(Lexer* lexer) {
     }
 }
 
+static bool handle_escape_char(Lexer* lexer, char* c) {
+    switch (lexer->current_char) {
+        case 'n':
+            *c = '\n';
+            return true;
+        case 't':
+            *c = '\t';
+            return true;
+        case 'r':
+            *c = '\r';
+            return true;
+        case '\\':
+            *c = '\\';
+            return true;
+        case '\'':
+            *c = '\'';
+            return true;
+        case '"':
+            *c = '"';
+            return true;
+        default:
+            lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_CHARACTER);
+            return false;
+    }
+}
+
 static void handle_char(Lexer* lexer){
     advance(lexer);
 
@@ -186,22 +212,38 @@ static void handle_char(Lexer* lexer){
         return;
     }
 
-    if (peek(lexer) == '\0') {
+    char c[2];
+    if (lexer->current_char == '\\') {
+        advance(lexer);
+
+        if (!lexer->current_char) {
+            lexer->err_status = gen_lexerror(lexer, LEXER_ERR_UNTERMINATED_CHAR);
+            return;
+        }
+
+        if (!handle_escape_char(lexer, &c[0])) {
+            return;
+        }
+    }
+    else {
+        c[0] = lexer->current_char;
+    }
+
+    advance(lexer);
+
+    if (!lexer->current_char) {
         lexer->err_status = gen_lexerror(lexer, LEXER_ERR_UNTERMINATED_CHAR);
         return;
     }
 
-    if (peek(lexer) != '\'') {
+    if (lexer->current_char != '\'') {
         lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_CHAR_LITERAL_SPAN);
         return;
     }
 
-    char c[2];
-    c[0] = lexer->current_char;
     c[1] = '\0';
 
     push_lexer_token(lexer, (Token) {.kind = TOKEN_CHAR, .value = c});
-    advance(lexer);
     advance(lexer);
 }
 
@@ -250,25 +292,41 @@ static void handle_string(Lexer* lexer) {
     advance(lexer);
     
     size_t len = 0;
-    size_t start = lexer->pos;
-
-    while(lexer->current_char && lexer->current_char != '"') {
-        len+=1;
-        advance(lexer);
-    }
-
-    if (!lexer->current_char) {
-        lexer->err_status = gen_lexerror(lexer, LEXER_ERR_UNTERMINATED_STRING);
-        return;
-    }
-
-    char* buffer = malloc(len + 1);
+    char* buffer = malloc(lexer->input_len - lexer->pos + 1);
     if (buffer == NULL) {
         lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INTERNAL_PUSH_ERROR);
         return;
     }
 
-    memcpy(buffer, lexer->input+start, len);
+    while(lexer->current_char && lexer->current_char != '"') {
+        if (lexer->current_char == '\\') {
+            advance(lexer);
+
+            if (!lexer->current_char) {
+                free(buffer);
+                lexer->err_status = gen_lexerror(lexer, LEXER_ERR_UNTERMINATED_STRING);
+                return;
+            }
+
+            if (!handle_escape_char(lexer, &buffer[len])) {
+                free(buffer);
+                return;
+            }
+        }
+        else {
+            buffer[len] = lexer->current_char;
+        }
+
+        len+=1;
+        advance(lexer);
+    }
+
+    if (!lexer->current_char) {
+        free(buffer);
+        lexer->err_status = gen_lexerror(lexer, LEXER_ERR_UNTERMINATED_STRING);
+        return;
+    }
+
     buffer[len] = '\0';
 
     push_lexer_token(lexer, (Token) {.kind = TOKEN_STRING, .value = buffer});
