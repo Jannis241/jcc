@@ -20,9 +20,9 @@ typedef struct {
 } ParserError;
 
 typedef struct {
-    TokenVec* tokens;
+    const TokenVec* tokens;
     size_t pos;
-    Token* current_token;
+    const Token* current_token;
     ParserError parser_error;
     AST ast;
 } Parser;

@@ -15,3 +15,16 @@ Stellen, die später effizienter und besser implementiert werden können.
 Für V1 gilt: Alles, was während eines Kompilierlaufs erzeugt wird, darf bis zum
 Programmende leben.
 
+
+## Spätere Optimierungen
+
+- Tokens kopieren ihre Werte nicht mehr, sondern speichern Slices in den
+  Source-Buffer
+- AST-Namen und Literals können auf Token oder Source Slices zeigen,
+  solange der Source-Buffer bis zum Ende lebt
+- AST-Nodes werden später über eine Arena allocated, statt viele einzelne
+  `malloc`-Aufrufe zu verwenden
+- Für Vektoren kann die Anfangskapazität je nach Anwendungsfall kleiner oder
+  gezielter gesetzt werden, statt immer direkt größere Blöcke zu reservieren
+- Wenn der Parser stabiler ist, können gezielte `free`-Funktionen oder ein
+  zentraler `CompilerContext` genutzt werden
