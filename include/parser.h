@@ -24,12 +24,12 @@ typedef struct {
     size_t pos;
     Token* current_token;
     ParserError parser_error;
-    ASTNode* root;
+    AST ast;
 } Parser;
 
 typedef struct {
     ParserError error;
-    ASTNode* ast_root;
+    AST ast;
 } ParserResult;
 
 ParserResult parse_tokens(const TokenVec* tokens);
