@@ -8,7 +8,8 @@
 typedef enum {
     PARSER_OK,
     PARSER_ERR_UNEXPECTED_TOP_LEVEL,
-    PARSER_ERR_UNEXPECTED_EOF
+    PARSER_ERR_UNEXPECTED_EOF,
+    PARSER_ERR_UNEXPECTED_TOKEN,
 } ParserStatus;
 
 typedef struct {
@@ -16,7 +17,6 @@ typedef struct {
     size_t token_pos;
     TokenKind expected;
     TokenKind got;
-    const char* message;
 } ParserError;
 
 typedef struct {
