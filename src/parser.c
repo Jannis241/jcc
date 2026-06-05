@@ -702,9 +702,9 @@ static ASTStmt* parse_let(Parser* parser) {
     if (!expect(parser, TOKEN_COLON)) return NULL;
     advance(parser);
 
+    // parse type handelt selber die errors und advanced selber
     const char* type = parse_type(parser);
     if (type == NULL) return NULL;
-    advance(parser);
 
 
     if (!expect(parser, TOKEN_EQ)) return NULL;
@@ -733,7 +733,6 @@ static ASTStmt* parse_let(Parser* parser) {
 
 
 static ASTStmt* parse_statement(Parser* parser) {
-    ASTStmt* stmt = malloc(sizeof(ASTStmt));
     switch (parser->current_token->kind) {
         case TOKEN_LET:
             return parse_let(parser);
@@ -763,13 +762,11 @@ static ASTStmt* parse_statement(Parser* parser) {
             return NULL;
         break;
     }
-
-    return stmt;
 }
 
 static bool current_is_statement(Parser *parser) {
     TokenKind stmt_kinds[] = {TOKEN_LET, TOKEN_IF, TOKEN_WHILE, TOKEN_FOR, TOKEN_BREAK, TOKEN_CONTINUE, TOKEN_RETURN, TOKEN_LBRACE};
-    return contains_tokenkind(parser->current_token->kind, stmt_kinds, 7); 
+    return contains_tokenkind(parser->current_token->kind, stmt_kinds, 8); 
 }
 
 static ASTStmtBlock parse_block(Parser* parser) {
