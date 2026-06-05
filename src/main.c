@@ -98,10 +98,10 @@ int main(int argc, char *argv[]) {
         break;
     case PARSER_ERR_UNEXPECTED_EXPR_START:
         printf("PARSER_ERR_UNEXPECTED_EXPR_START\n");
-        break;
+        return 1;
     case PARSER_ERR_INVALID_CHAR_LITERAL:
         printf("PARSER_ERR_INVALID_CHAR_LITERAL \n");
-        break;
+        return 1;
     case PARSER_ERR_UNEXPECTED_TOKEN:
         printf("PARSER_ERR_UNEXPECTED_TOKEN: expected: %s, got: %s, pos: %zu \n", token_kind_name(parser_result.error.expected),token_kind_name(parser_result.error.got), parser_result.error.token_pos);
         return 1;

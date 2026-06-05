@@ -133,11 +133,16 @@ static ASTExpr* parse_primary(Parser *parser) {
             ASTExprVec_init(&elements);
 
             if (parser->current_token->kind != TOKEN_RBRACKET) {
-                ASTExprVec_push(&elements, parse_expr(parser));
+                ASTExpr* element = parse_expr(parser);
+                if (element == NULL) return NULL;
+
+                ASTExprVec_push(&elements, element);
 
                 while(parser->current_token->kind == TOKEN_COMMA) {
                     advance (parser);
-                    ASTExprVec_push(&elements, parse_expr(parser));
+                    ASTExpr* element = parse_expr(parser);
+                    if (element == NULL) return NULL;
+                    ASTExprVec_push(&elements, element);
                 }
             }
             expect(parser, TOKEN_RBRACKET);
@@ -148,9 +153,6 @@ static ASTExpr* parse_primary(Parser *parser) {
         default: 
             parser->parser_error = (ParserError){.got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_EXPR_START} ;
             return NULL;
-    }
-    if (node == NULL) {
-        exit(-1);
     }
 
     return node;
@@ -180,7 +182,7 @@ static ASTExpr* parse_comparison(Parser *parser) {
     ASTExpr *lhs = parse_primary(parser);
 
     if (lhs == NULL) {
-        return lhs;
+        return NULL;
     }
 
     TokenKind comparisons[4] = {TOKEN_LT, TOKEN_GT, TOKEN_GTEQ, TOKEN_LTEQ};
@@ -209,6 +211,10 @@ static ASTExpr* parse_comparison(Parser *parser) {
         advance(parser);
 
         ASTExpr *rhs = parse_primary(parser);
+
+        if (rhs == NULL) {
+            return NULL;
+        }
 
         ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
         if (new_lhs == NULL) {
@@ -243,6 +249,10 @@ static ASTExpr* parse_equality(Parser *parser) {
         advance(parser);
         ASTExpr *rhs = parse_comparison(parser);
 
+        if (rhs == NULL) {
+            return NULL;
+        }
+
         ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
         if (new_lhs == NULL) {
             printf("Malloc failed \n");
@@ -267,6 +277,10 @@ static ASTExpr* parse_and(Parser *parser) {
     while (parser->current_token->kind == TOKEN_AMP_AMP) {
         advance(parser);
         ASTExpr* rhs = parse_equality(parser);
+
+        if (rhs == NULL) {
+            return NULL;
+        }
 
         ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
         if (new_lhs == NULL) {
@@ -293,6 +307,10 @@ static ASTExpr* parse_or(Parser *parser) {
     while (parser->current_token->kind == TOKEN_PIPE_PIPE) {
         advance(parser);
         ASTExpr* rhs = parse_and(parser);
+
+        if (rhs == NULL) {
+            return NULL;
+        }
 
         ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
         if (new_lhs == NULL) {
@@ -322,28 +340,32 @@ static void parse_fn(Parser *parser) {
 
 }
 
-static void parse_const(Parser *parser) {
+static bool parse_const(Parser *parser) {
 
-    if (!expect(parser, TOKEN_IDENT)) return;
+    if (!expect(parser, TOKEN_IDENT)) return false;
     // V1 zeigt einfach direkt auf die value,
     // da TokenVec in main eh lang genug lebt
     // (könnte man optimieren)
     char* name = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_COLON)) return; 
+    if (!expect(parser, TOKEN_COLON)) return false; 
     advance(parser);
 
-    if (!expect(parser, TOKEN_IDENT)) return; 
+    if (!expect(parser, TOKEN_IDENT)) return false; 
     char* type = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_EQ)) return; 
+    if (!expect(parser, TOKEN_EQ)) return false; 
     advance(parser);
 
     ASTExpr* value = parse_expr(parser);
 
-    if (!expect(parser, TOKEN_SEMICOLON)) return;
+    if (value == NULL) {
+        return false;
+    }
+
+    if (!expect(parser, TOKEN_SEMICOLON)) return false;
     advance(parser);
 
     // memory auf dem heap allocaten, damit diese constant
@@ -358,6 +380,7 @@ static void parse_const(Parser *parser) {
     *c = (ASTConst){.value = value, .name = name, .type = type};
 
     ASTConstVec_push(&parser->ast.constants, c);
+    return true;
 }
 
 static void parse_struct(Parser *parser) {
@@ -395,7 +418,12 @@ ParserResult parse_tokens(const TokenVec* tokens) {
             break;
             case TOKEN_CONST:
                 advance(&parser);
-                parse_const(&parser);
+
+                // parse const returnt ob alles gut gelaufen ist oder nicht,
+                // falls false => error wurde in parser.parser_error geschrieben
+                if (!parse_const(&parser)) {
+                    return (ParserResult) {.ast = parser.ast, .error = parser.parser_error};
+                }
             break;
             case TOKEN_STRUCT:
                 advance(&parser);
