@@ -119,15 +119,9 @@ typedef struct {
 } ASTStmtAssign;
 
 typedef struct {
-    // for (int i = 0;)
-    ASTStmtAssign var_assign;
-
-    // for (int i = 0; i < 10)
+    ASTStmt* init;
     ASTExpr* condition;
-
-    // for (int i = 0; i < 10; i++)
-    ASTStmtAssign action;
-
+    ASTStmt* action;
     ASTStmtBlock code_block;
 } ASTStmtFor;
 

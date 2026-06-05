@@ -13,6 +13,18 @@ fn main() => int{
     while (x < 3) {
         print("Hello", 3);
     }
+
+    if (x ==3 || 3 != 2) {
+        print("if") 
+    }
+    else if (true) {
+
+        print("else if") 
+    }
+    else {
+        print("else") 
+
+    }
 }
 
 

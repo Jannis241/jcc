@@ -387,10 +387,12 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
         print_stmt_block(&stmt->value.while_stmt.code_block, indent + 4);
         break;
     case AST_STMT_FOR:
-        print_string_field(indent + 2, "var_name",
-                           stmt->value.for_stmt.var_name);
+        print_line(indent + 2, "init:");
+        print_stmt(stmt->value.for_stmt.init, indent + 4);
         print_line(indent + 2, "condition:");
         print_expr(stmt->value.for_stmt.condition, indent + 4);
+        print_line(indent + 2, "action:");
+        print_stmt(stmt->value.for_stmt.action, indent + 4);
         print_line(indent + 2, "code_block:");
         print_stmt_block(&stmt->value.for_stmt.code_block, indent + 4);
         break;

@@ -20,6 +20,7 @@ static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
 
 static ASTExpr* parse_expr(Parser* parser);
 static ASTStmtBlock parse_block(Parser* parser);
+static ASTStmt* parse_statement(Parser* parser);
 
 static bool expect(Parser *parser, TokenKind kind) {
     if (parser->current_token->kind != kind) {
@@ -671,10 +672,96 @@ static bool parse_const(Parser *parser) {
 }
 
 static ASTStmt* parse_if(Parser* parser) {
-    return NULL;
+    if (!expect(parser, TOKEN_IF)) return NULL;
+    advance(parser);
+
+    if (!expect(parser, TOKEN_LPARENT)) return NULL;
+    advance(parser);
+
+    ASTExpr* cond = parse_expr(parser);
+    if (cond == NULL) return NULL;
+
+    if (!expect(parser, TOKEN_RPARENT)) return NULL;
+    advance(parser);
+
+    if (!expect(parser, TOKEN_LBRACE)) return NULL;
+    advance(parser);
+
+    ASTStmtBlock block = parse_block(parser);
+
+    if (!expect(parser, TOKEN_RBRACE)) return NULL;
+    advance(parser);
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+    if (stmt == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+    *stmt = (ASTStmt) {.kind = AST_STMT_IF};
+    stmt->value.if_stmt.code_block = block;
+    stmt->value.if_stmt.condition = cond;
+    stmt->value.if_stmt.has_else = false;
+
+    if (parser->current_token->kind == TOKEN_ELSE) {
+        advance(parser);
+
+        if (parser->current_token->kind == TOKEN_IF) {
+            parse_if(parser);
+        }
+        else {
+            if (!expect(parser, TOKEN_LBRACE)) return NULL;
+            advance(parser);
+
+            ASTStmtBlock block = parse_block(parser);
+
+            if (!expect(parser, TOKEN_RBRACE)) return NULL;
+            advance(parser);
+            stmt->value.if_stmt.has_else = true;
+            stmt->value.if_stmt.optional_else_block = block;
+        }
+    }
+
+    return stmt;
 }
 static ASTStmt* parse_for(Parser* parser) {
-    return NULL;
+    if (!expect(parser, TOKEN_FOR)) return NULL;
+    advance(parser);
+
+    if (!expect(parser, TOKEN_LPARENT)) return NULL;
+    advance(parser);
+
+    ASTStmt* init = parse_statement(parser);
+    if (init == NULL) return NULL;
+    ASTExpr* cond = parse_expr(parser);
+    if (cond == NULL) return NULL;
+    ASTStmt* action = parse_statement(parser);
+    if (action == NULL) return NULL;
+
+    if (!expect(parser, TOKEN_RPARENT)) return NULL;
+    advance(parser);
+
+    if (!expect(parser, TOKEN_LBRACE)) return NULL;
+    advance(parser);
+
+    ASTStmtBlock block = parse_block(parser);
+
+    if (!expect(parser, TOKEN_RBRACE)) return NULL;
+    advance(parser);
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+    if (stmt == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    *stmt = (ASTStmt) {.kind = AST_STMT_FOR};
+    stmt->value.for_stmt.condition = cond;
+    stmt->value.for_stmt.init = init;
+    stmt->value.for_stmt.code_block = block;
+    stmt->value.for_stmt.action = action;
+
+    return stmt;
+
 }
 static ASTStmt* parse_while(Parser* parser) {
     if (!expect(parser, TOKEN_WHILE)) return NULL;
