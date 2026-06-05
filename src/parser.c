@@ -671,24 +671,59 @@ static bool parse_const(Parser *parser) {
 
 static ASTStmt* parse_if(Parser* parser) {
 
+    return NULL;
 }
 static ASTStmt* parse_for(Parser* parser) {
 
+    return NULL;
 }
 static ASTStmt* parse_while(Parser* parser) {
 
+    return NULL;
 }
 static ASTStmt* parse_continue(Parser* parser) {
 
+    return NULL;
 }
 static ASTStmt* parse_break(Parser* parser) {
 
+    return NULL;
 }
 static ASTStmt* parse_lbrace_stmt(Parser* parser) {
-
+    return NULL;
 }
-static ASTStmt* parse_return(Parser* parser) {
 
+static ASTStmt* parse_return(Parser* parser) {
+    if (!expect(parser, TOKEN_RETURN)) return NULL;
+    advance(parser);
+
+    bool has_return = true;
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+    if (stmt == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    if (parser->current_token->kind == TOKEN_SEMICOLON) {
+        has_return = false;
+        advance(parser);
+        stmt->value.return_stmt.value = NULL;
+    }
+    else {
+        ASTExpr* value = parse_expr(parser);
+        if (value == NULL)  return NULL;
+
+        if (!expect(parser, TOKEN_SEMICOLON)) return NULL;
+        advance(parser);
+
+        stmt->value.return_stmt.value = value;
+    }
+
+    stmt->kind = AST_STMT_RETURN;
+    stmt->value.return_stmt.has_return_value = has_return;
+
+    return stmt;
 }
 
 static ASTStmt* parse_let(Parser* parser) {
@@ -735,6 +770,7 @@ static ASTStmt* parse_let(Parser* parser) {
 static ASTStmt* parse_statement(Parser* parser) {
     switch (parser->current_token->kind) {
         case TOKEN_LET:
+            printf("Found let stmt. \n");
             return parse_let(parser);
         case TOKEN_IF:
             return parse_if(parser);
@@ -772,6 +808,7 @@ static bool current_is_statement(Parser *parser) {
 static ASTStmtBlock parse_block(Parser* parser) {
     ASTStmtVec statements;
     ASTStmtVec_init(&statements);
+
 
     while (parser->current_token->kind != TOKEN_RBRACE) {
         if (current_is_statement(parser)) {
@@ -857,6 +894,7 @@ static bool parse_fn(Parser *parser) {
 
     const char* return_type = parse_type(parser);
     if (return_type == NULL) return false;
+
 
     if (!expect(parser, TOKEN_LBRACE)) return false;
     advance(parser);
