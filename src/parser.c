@@ -637,6 +637,12 @@ static bool parse_const(Parser *parser) {
 }
 
 static ASTStmtBlock parse_block(Parser* parser) {
+    // L und R brace wird von der parse_fn() function gehandelt.
+    ASTStmtBlock block;
+    ASTStmtVec statements;
+    ASTStmtVec_init(&statements);
+    block.statements = statements;
+    return block;
 }
 
 static bool parse_fn(Parser *parser) {
@@ -660,6 +666,8 @@ static bool parse_fn(Parser *parser) {
         // :
         if (!expect(parser, TOKEN_COLON)) return false;
         advance(parser);
+
+        // Todo: list types implementen: [String]
 
         // type
         if (!expect(parser, TOKEN_IDENT)) return false;
@@ -740,6 +748,8 @@ static bool parse_struct(Parser *parser) {
         if (!expect(parser, TOKEN_COLON)) return false;
         advance(parser);
 
+        // Todo: list types implementen: [String]
+
         // type
         if (!expect(parser, TOKEN_IDENT)) return false;
         const char* field_type = parser->current_token->value;
@@ -819,7 +829,7 @@ static bool parse_enum(Parser *parser) {
         printf("Malloc failed in parse_fn() \n");
         exit(1);
     }
-    *enum_def = (ASTEnumDef) {.cases = case_names};
+    *enum_def = (ASTEnumDef) {.cases = case_names, .name = enum_name};
 
     if (!ASTEnumDefVec_push(&parser->ast.enum_defs, enum_def)) {
         printf("Pushing Vec failed.. \n");

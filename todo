@@ -1,3 +1,6 @@
+- listen typen fixxen: für parameter, struct fields etc wird jetzt immer nur ident : ident akzeptiert, 
+  es sollte aber auch zb ident : [ident] sein können für arrays.
+- parse_block function implmentieren (achtung die letzte)
 - zweite Branch machen: 
     - Errors evntl einfach printen und exiten?
     - performance optimieren

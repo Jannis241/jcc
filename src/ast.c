@@ -327,8 +327,12 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
     case AST_EXPR_POSTFIX:
         print_line(indent + 2, "op: %s",
                    postfix_op_name(expr->value.postfix.op));
-        print_line(indent + 2, "expr:");
-        print_expr(expr->value.postfix.expr, indent + 4);
+        print_line(indent + 2, "obj:");
+        print_expr(expr->value.postfix.obj, indent + 4);
+        if (expr->value.postfix.value != NULL) {
+            print_line(indent + 2, "value:");
+            print_expr(expr->value.postfix.value, indent + 4);
+        }
         break;
     case AST_EXPR_GROUPING:
         print_line(indent + 2, "inner:");
