@@ -32,6 +32,12 @@ static inline void advance(Parser *parser) {
 
 static ASTExpr* parse_primary(Parser *parser) {
     ASTExpr* node = malloc(sizeof(ASTExpr));
+
+    if (node == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
     switch(parser->current_token->kind) {
         case TOKEN_INT:
             *node = (ASTExpr){.kind = AST_EXPR_INT_LITERAL, .value.literal_value = parser->current_token->value};   
@@ -90,7 +96,10 @@ static ASTExpr* parse_primary(Parser *parser) {
 
                     ASTNameExpr *p = malloc(sizeof(ASTNameExpr));
                     *p = (ASTNameExpr) {.name = field_name, .expr = value};
-                    ASTNameExprVec_push(&fields, p);
+                    if (!ASTNameExprVec_push(&fields, p)) {
+                        printf("Pushing Vec element failed. \n");
+                        exit(-1);
+                    }
 
                     if (parser->current_token->kind == TOKEN_RBRACE) {
                         advance(parser);
@@ -123,6 +132,7 @@ static ASTExpr* parse_primary(Parser *parser) {
         case TOKEN_LPARENT:
             advance(parser);
             ASTExpr* inner = parse_expr(parser);
+            if (inner == NULL) return NULL;
             if (!expect(parser, TOKEN_RPARENT)) return NULL;
             *node = (ASTExpr){.kind = AST_EXPR_GROUPING, .value.grouping_inner = inner};   
             advance(parser);
@@ -136,7 +146,11 @@ static ASTExpr* parse_primary(Parser *parser) {
                 ASTExpr* element = parse_expr(parser);
                 if (element == NULL) return NULL;
 
-                ASTExprVec_push(&elements, element);
+                if (!ASTExprVec_push(&elements, element)) {
+                    printf("Pushing Vec element failed. \n");
+                    exit(-1);
+                }
+                
 
                 while(parser->current_token->kind == TOKEN_COMMA) {
                     advance (parser);
@@ -145,7 +159,7 @@ static ASTExpr* parse_primary(Parser *parser) {
                     ASTExprVec_push(&elements, element);
                 }
             }
-            expect(parser, TOKEN_RBRACKET);
+            if (!expect(parser, TOKEN_RBRACKET)) return NULL;
             advance(parser);
             *node = (ASTExpr){.kind = AST_EXPR_LIST_LITERAL, .value.list_literal = elements};   
 
@@ -379,7 +393,10 @@ static bool parse_const(Parser *parser) {
     }
     *c = (ASTConst){.value = value, .name = name, .type = type};
 
-    ASTConstVec_push(&parser->ast.constants, c);
+    if (!ASTConstVec_push(&parser->ast.constants, c)) {
+        printf("Pushing Vec failed.. \n");
+        exit(-1);
+    }
     return true;
 }
 

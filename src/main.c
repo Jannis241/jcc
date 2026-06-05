@@ -114,5 +114,4 @@ int main(int argc, char *argv[]) {
     }
 
     print_ast(&parser_result.ast);
-
 }

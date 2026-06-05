@@ -36,6 +36,5 @@ typedef struct {
 } ParserResult;
 
 ParserResult parse_tokens(const TokenVec* tokens);
-void free_ast(AST *ast);
 
 #endif

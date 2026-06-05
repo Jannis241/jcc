@@ -4,8 +4,8 @@
 #include <stdbool.h>
 
 typedef struct {
-    char* type;
-    char* name;
+    const char* type;
+    const char* name;
 } ASTTypeName;
 
 VECTOR_DEFINE(ASTTypeName*, ASTTypeNameVec)
@@ -93,8 +93,8 @@ typedef struct {
 } ASTStmtExpr;
 
 typedef struct {
-    char* var_name;
-    char* var_type;
+    const char* var_name;
+    const char* var_type;
     ASTExpr* value;
 } ASTStmtLet;
 
@@ -155,20 +155,20 @@ struct ASTStmt {
 
 
 typedef struct {
-    char* name;
+    const char* name;
     ASTExpr* expr;
 } ASTNameExpr;
 
 VECTOR_DEFINE(ASTNameExpr*, ASTNameExprVec)
 
 typedef struct {
-    char* enum_name;
-    char* case_name;
+    const char* enum_name;
+    const char* case_name;
 } ASTExprEnumLiteral;
 
 
 typedef struct {
-    char* name;
+    const char* name;
     ASTNameExprVec fields; // field name, expr => x: 2+3 -> x (field name) 2+3 (value -> expr)
 } ASTExprStructLiteral;
 
@@ -189,14 +189,14 @@ typedef struct {
 VECTOR_DEFINE(ASTExpr*, ASTExprVec)
 
 typedef struct ASTExprCall {
-    char* function_name;
+    const char* function_name;
     ASTExprVec params;
 } ASTExprCall;
 
 
 typedef struct ASTExprFieldAccess {
     ASTExpr* obj;
-    char* field_name;
+    const char* field_name;
 } ASTExprFieldAccess;
 
 
@@ -218,26 +218,26 @@ struct ASTExpr{
 
 
 typedef struct {
-    char *name;
-    char *type;
+    const char *name;
+    const char *type;
     ASTExpr* value;
 } ASTConst;
 
 VECTOR_DEFINE(char*, StrVec)
 typedef struct {
-    char* name;
+    const char* name;
     StrVec cases;
 } ASTEnumDef;
 
 
 typedef struct {
-    char* name;
+    const char* name;
     ASTTypeNameVec fields; 
 } ASTStructDef;
 
 typedef struct {
-    char* name;
-    char* return_type;
+    const char* name;
+    const char* return_type;
     ASTTypeNameVec params;
     ASTStmtBlock block;
 } ASTFunction;

@@ -13,8 +13,7 @@ Stellen, die später effizienter und besser implementiert werden können.
 ## Ownership und Lifetime
 
 Für V1 gilt: Alles, was während eines Kompilierlaufs erzeugt wird, darf bis zum
-Programmende leben.
-
+Programmende leben. Es wird bewusst Memory geleaked.
 
 ## Spätere Optimierungen
 
