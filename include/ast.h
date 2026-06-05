@@ -210,7 +210,8 @@ typedef enum PostFixOp {
 
 typedef struct ASTExprPostfix {
     PostFixOp op;
-    ASTExpr* expr;
+    ASTExpr* obj;
+    ASTExpr* value;
 } ASTExprPostfix;
 
 

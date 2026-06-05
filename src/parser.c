@@ -247,8 +247,8 @@ static ASTExpr* parse_postfix(Parser *parser) {
         // <expr>[
         else if (parser->current_token->kind == TOKEN_LBRACKET) {
             advance(parser);
-            ASTExpr* expr = parse_expr(parser);
-            if (expr == NULL) return NULL;
+            ASTExpr* index = parse_expr(parser);
+            if (index == NULL) return NULL;
 
             if (!expect(parser, TOKEN_RBRACKET)) return NULL;
 
@@ -263,7 +263,8 @@ static ASTExpr* parse_postfix(Parser *parser) {
 
             new_expr->kind = AST_EXPR_POSTFIX;
             new_expr->value.postfix.op = POSTFIX_OP_BRACKETS;
-            new_expr->value.postfix.expr = expr;
+            new_expr->value.postfix.obj = expr;
+            new_expr->value.postfix.value = index;
             expr = new_expr;
         }
         else if (parser->current_token->kind == TOKEN_PLUSPLUS) {
@@ -325,7 +326,7 @@ static ASTExpr* parse_unary(Parser *parser) {
 
     advance(parser);
 
-    ASTExpr* value = parse_expr(parser);
+    ASTExpr* value = parse_unary(parser);
 
     if (value == NULL) return NULL;
 
