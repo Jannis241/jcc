@@ -239,7 +239,7 @@ typedef struct {
     ASTExpr* value;
 } ASTConst;
 
-VECTOR_DEFINE(char*, StrVec)
+VECTOR_DEFINE(const char*, StrVec)
 typedef struct {
     const char* name;
     StrVec cases;
