@@ -21,7 +21,6 @@ const char* token_kind_name(TokenKind kind) {
         case TOKEN_WHILE: return "While";
         case TOKEN_LET: return "Let";
         case TOKEN_FN: return "Fn";
-        case TOKEN_IN: return "In";
         case TOKEN_STRUCT: return "Struct";
         case TOKEN_CONST: return "Const";
         case TOKEN_FOR: return "For";
@@ -350,8 +349,6 @@ static void handle_ident(Lexer* lexer) {
         push_lexer_token(lexer, (Token) {.kind = TOKEN_LET, .value = ident});
     } else if (strcmp(ident, "fn") == 0) {
         push_lexer_token(lexer, (Token) {.kind = TOKEN_FN, .value = ident});
-    } else if (strcmp(ident, "in") == 0) {
-        push_lexer_token(lexer, (Token) {.kind = TOKEN_IN, .value = ident});
     } else if (strcmp(ident, "struct") == 0) {
         push_lexer_token(lexer, (Token) {.kind = TOKEN_STRUCT, .value = ident});
     } else if (strcmp(ident, "const") == 0) {

@@ -10,6 +10,9 @@ fn main() => int{
     {
         let z: String = "hello world";
     }
+    while (x < 3) {
+        print("Hello", 3);
+    }
 }
 
 
