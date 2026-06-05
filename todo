@@ -1,7 +1,68 @@
-- zweite Branch machen: 
-    - Errors evntl einfach printen und exiten?
-    - performance optimieren
-    - arenas
-    - debloaten
-    - ganze helper functions weg machen 
+- man könnte safe dieses ganze if(expect) return null; advance in ein makro packen
+- Statement-Parser vereinheitlichen:
+    - Eine Funktion bauen, die alle Statement-Arten parst, auch Expr-Statements.
+    - Aktuell kann `parse_block` Expr-Statements parsen, `parse_statement` aber nicht.
+    - Das blockiert besonders `for (...; ...; i++;)`.
 
+- Assignments implementieren:
+    - `target = value;` -> `AST_STMT_ASSIGN`
+    - `target += value;` -> `AST_STMT_BINARY_ASSIGN` mit `BINOP_ADD`
+    - `target -= value;` -> `AST_STMT_BINARY_ASSIGN` mit `BINOP_SUB`
+    - `target *= value;` -> `AST_STMT_BINARY_ASSIGN` mit `BINOP_MUL`
+    - `target /= value;` -> `AST_STMT_BINARY_ASSIGN` mit `BINOP_DIV`
+    - Ziele sollten mindestens Variablen, Field Access und Index Access erlauben.
+
+- `for`-Syntax sauber festlegen und implementieren:
+    - Zielsyntax z.B. `for (let i: int = 0; i < 10; i++) { ... }`
+    - Header in drei Teile parsen: init, condition, action.
+    - Init sollte `let`, Assignment oder leer sein koennen.
+    - Condition sollte Expr oder leer sein koennen.
+    - Action sollte Expr/Postfix/Assignment oder leer sein koennen.
+    - Header-Semikolons getrennt behandeln, nicht ueber normale Statement-Semikolons erzwingen.
+
+- Fehlerbehandlung in Blocks robuster machen:
+    - `parse_block` darf bei EOF nicht endlos weiterlaufen oder out-of-bounds lesen.
+    - Bei Fehlern sofort Status behalten und nicht spaeter mit einem Folgefehler ueberschreiben.
+    - Fehlende `}` explizit als unerwartetes EOF melden.
+
+- Lookahead sicher machen:
+    - `peek()` und `peek2()` pruefen aktuell keine Grenzen.
+    - Bei unvollstaendigen Inputs kann der Parser hinter `TOKEN_EOF` lesen.
+
+- Optionalitaeten konsistent machen:
+    - Entscheiden, ob trailing commas in Listen und Calls erlaubt sind.
+    - Aktuell erlauben Structs/Enums/Struct-Literals trailing commas, Listen und Calls aber nicht.
+
+- Top-Level und Block-Enden sauber validieren:
+    - Nach jedem erfolgreichen Parse muss der Parser garantiert auf dem naechsten Token stehen.
+    - Fuer alle parse-Funktionen klare Regel: entweder Token konsumieren und Erfolg, oder Error setzen.
+
+- `if / else if / else` nochmal finalisieren:
+    - Aktuell wird `else if` als Block mit einem einzelnen If-Statement modelliert.
+    - Entscheiden, ob das so bleiben soll oder ob der AST ein echtes `else_stmt` bekommt.
+
+## Sinnvolle Verbesserungen danach
+
+- Bessere Parser-Errors:
+    - Status + erwartetes Token + gefundenes Token + Position ausgeben.
+    - Eventuell Zeile/Spalte statt nur Token-Index.
+    - Fehler nicht nur printen, sondern strukturiert zurueckgeben.
+
+- Parser-Helfer aufraeumen:
+    - Gemeinsame Funktion fuer `expect + advance`.
+    - Gemeinsame Funktion fuer Block-Parsing mit Fehlercheck.
+    - Gemeinsame Funktion fuer comma-separated Listen.
+
+- Warnings reduzieren:
+    - Shadowing in `parser.c` entfernen.
+    - Switch-Warnungen bewusst per `default` oder gezielten Comments behandeln.
+
+- Memory/Lifetime spaeter verbessern:
+    - Fuer V1 darf geleakt werden, aber spaeter Arena oder CompilerContext nutzen.
+    - Token-/AST-Strings spaeter als Slices statt Kopien pruefen.
+
+- Performance/Architektur spaeter:
+    - Arenas
+    - Debloaten
+    - Helper-Funktionen vereinfachen
+    - Zweiten Branch fuer groessere Umbauten machen

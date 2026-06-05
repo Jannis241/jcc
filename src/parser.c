@@ -9,6 +9,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MATCH_OR_NULL(token) do {             \
+    if (!expect(parser, (token))) {           \
+        return NULL;                          \
+    }                                         \
+    advance(parser);                          \
+} while (0)
+
+#define MATCH_OR_FALSE(token) do {            \
+    if (!expect(parser, (token))) {           \
+        return false;                         \
+    }                                         \
+    advance(parser);                          \
+} while (0)
+
 static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
     for (size_t i = 0; i < len; i++) {
         if (arr[i] == value) {
@@ -52,10 +66,7 @@ static const char* parse_type(Parser *parser) {
             return NULL;
         }
 
-        if (!expect(parser, TOKEN_RBRACKET)) {
-            return NULL;
-        }
-        advance(parser);
+        MATCH_OR_NULL(TOKEN_RBRACKET);
 
         char* array_type = malloc(strlen(inner_type) + 3);
         if (array_type == NULL) {
@@ -130,8 +141,7 @@ static ASTExpr* parse_primary(Parser *parser) {
                     const char* field_name = parser->current_token->value;
                     advance(parser);
 
-                    if (!expect(parser, TOKEN_COLON)) return NULL;
-                    advance(parser);
+                    MATCH_OR_NULL(TOKEN_COLON);
 
                     ASTExpr* value = parse_expr(parser);
 
@@ -150,8 +160,7 @@ static ASTExpr* parse_primary(Parser *parser) {
                         advance(parser);
                         break;
                     }
-                    if (!expect(parser, TOKEN_COMMA)) return NULL;
-                    advance(parser);
+                    MATCH_OR_NULL(TOKEN_COMMA);
                 }
                 struct_literal.fields = fields;
                 *node = (ASTExpr){.kind = AST_EXPR_STRUCT_LITERAL, .value.struct_literal = struct_literal};   
@@ -178,9 +187,8 @@ static ASTExpr* parse_primary(Parser *parser) {
             advance(parser);
             ASTExpr* inner = parse_expr(parser);
             if (inner == NULL) return NULL;
-            if (!expect(parser, TOKEN_RPARENT)) return NULL;
+            MATCH_OR_NULL(TOKEN_RPARENT);
             *node = (ASTExpr){.kind = AST_EXPR_GROUPING, .value.grouping_inner = inner};   
-            advance(parser);
         break;
         case TOKEN_LBRACKET:
             advance(parser);
@@ -204,8 +212,7 @@ static ASTExpr* parse_primary(Parser *parser) {
                     ASTExprVec_push(&elements, element);
                 }
             }
-            if (!expect(parser, TOKEN_RBRACKET)) return NULL;
-            advance(parser);
+            MATCH_OR_NULL(TOKEN_RBRACKET);
             *node = (ASTExpr){.kind = AST_EXPR_LIST_LITERAL, .value.list_literal = elements};   
 
         break;
@@ -238,8 +245,7 @@ static ASTExpr* finish_call(Parser *parser, ASTExpr* callee) {
             };
         }
     }
-    if (!expect(parser, TOKEN_RPARENT)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RPARENT);
 
     ASTExpr* new_expr = malloc(sizeof(ASTExpr));
 
@@ -293,9 +299,7 @@ static ASTExpr* parse_postfix(Parser *parser) {
             ASTExpr* index = parse_expr(parser);
             if (index == NULL) return NULL;
 
-            if (!expect(parser, TOKEN_RBRACKET)) return NULL;
-
-            advance(parser);
+            MATCH_OR_NULL(TOKEN_RBRACKET);
 
             ASTExpr* new_expr = malloc(sizeof(ASTExpr));
 
@@ -635,14 +639,12 @@ static bool parse_const(Parser *parser) {
     const char* name = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_COLON)) return false; 
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_COLON);
 
     const char* type = parse_type(parser);
     if (type == NULL) return false;
 
-    if (!expect(parser, TOKEN_EQ)) return false; 
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_EQ);
 
     ASTExpr* value = parse_expr(parser);
 
@@ -650,8 +652,7 @@ static bool parse_const(Parser *parser) {
         return false;
     }
 
-    if (!expect(parser, TOKEN_SEMICOLON)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_SEMICOLON);
 
     // memory auf dem heap allocaten, damit diese constant
     // länger lebt als eine lokale stack variable (lifetimes)
@@ -672,20 +673,14 @@ static bool parse_const(Parser *parser) {
 }
 
 static ASTStmt* parse_if(Parser* parser) {
-    if (!expect(parser, TOKEN_IF)) return NULL;
-    advance(parser);
-
-    if (!expect(parser, TOKEN_LPARENT)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_IF);
+    MATCH_OR_NULL(TOKEN_LPARENT);
 
     ASTExpr* cond = parse_expr(parser);
     if (cond == NULL) return NULL;
 
-    if (!expect(parser, TOKEN_RPARENT)) return NULL;
-    advance(parser);
-
-    if (!expect(parser, TOKEN_LBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RPARENT);
+    MATCH_OR_NULL(TOKEN_LBRACE);
 
     ASTStmtBlock block = parse_block(parser);
 
@@ -693,14 +688,14 @@ static ASTStmt* parse_if(Parser* parser) {
         return NULL;
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RBRACE);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
         printf("Malloc failed \n");
         exit(-1);
     }
+
     *stmt = (ASTStmt) {.kind = AST_STMT_IF};
     stmt->value.if_stmt.code_block = block;
     stmt->value.if_stmt.condition = cond;
@@ -723,16 +718,14 @@ static ASTStmt* parse_if(Parser* parser) {
             stmt->value.if_stmt.has_else = true;
         }
         else {
-            if (!expect(parser, TOKEN_LBRACE)) return NULL;
-            advance(parser);
+            MATCH_OR_NULL(TOKEN_LBRACE);
 
             ASTStmtBlock block = parse_block(parser);
             if (parser->parser_error.status != PARSER_OK) {
                 return NULL;
             }
 
-            if (!expect(parser, TOKEN_RBRACE)) return NULL;
-            advance(parser);
+            MATCH_OR_NULL(TOKEN_RBRACE);
             stmt->value.if_stmt.has_else = true;
             stmt->value.if_stmt.optional_else_block = block;
         }
@@ -741,11 +734,9 @@ static ASTStmt* parse_if(Parser* parser) {
     return stmt;
 }
 static ASTStmt* parse_for(Parser* parser) {
-    if (!expect(parser, TOKEN_FOR)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_FOR);
 
-    if (!expect(parser, TOKEN_LPARENT)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_LPARENT);
 
     ASTStmt* init = parse_statement(parser);
     if (init == NULL) return NULL;
@@ -754,11 +745,9 @@ static ASTStmt* parse_for(Parser* parser) {
     ASTStmt* action = parse_statement(parser);
     if (action == NULL) return NULL;
 
-    if (!expect(parser, TOKEN_RPARENT)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RPARENT);
 
-    if (!expect(parser, TOKEN_LBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_LBRACE);
 
     ASTStmtBlock block = parse_block(parser);
 
@@ -766,8 +755,7 @@ static ASTStmt* parse_for(Parser* parser) {
         return NULL;
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RBRACE);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
@@ -785,20 +773,16 @@ static ASTStmt* parse_for(Parser* parser) {
 
 }
 static ASTStmt* parse_while(Parser* parser) {
-    if (!expect(parser, TOKEN_WHILE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_WHILE);
 
 
-    if (!expect(parser, TOKEN_LPARENT)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_LPARENT);
 
     ASTExpr* condition = parse_expr(parser);
 
-    if (!expect(parser, TOKEN_RPARENT)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RPARENT);
 
-    if (!expect(parser, TOKEN_LBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_LBRACE);
 
     ASTStmtBlock block = parse_block(parser);
 
@@ -806,8 +790,7 @@ static ASTStmt* parse_while(Parser* parser) {
         return NULL;
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RBRACE);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
@@ -820,11 +803,9 @@ static ASTStmt* parse_while(Parser* parser) {
 
 }
 static ASTStmt* parse_continue(Parser* parser) {
-    if (!expect(parser, TOKEN_CONTINUE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_CONTINUE);
     
-    if (!expect(parser, TOKEN_SEMICOLON)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_SEMICOLON);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
@@ -835,11 +816,9 @@ static ASTStmt* parse_continue(Parser* parser) {
     return stmt;
 }
 static ASTStmt* parse_break(Parser* parser) {
-    if (!expect(parser, TOKEN_BREAK)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_BREAK);
     
-    if (!expect(parser, TOKEN_SEMICOLON)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_SEMICOLON);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
@@ -850,8 +829,7 @@ static ASTStmt* parse_break(Parser* parser) {
     return stmt;
 }
 static ASTStmt* parse_new_scope(Parser* parser) {
-    if (!expect(parser, TOKEN_LBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_LBRACE);
 
     ASTStmtBlock block = parse_block(parser);
 
@@ -859,8 +837,7 @@ static ASTStmt* parse_new_scope(Parser* parser) {
         return NULL;
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RBRACE);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
@@ -873,8 +850,7 @@ static ASTStmt* parse_new_scope(Parser* parser) {
 }
 
 static ASTStmt* parse_return(Parser* parser) {
-    if (!expect(parser, TOKEN_RETURN)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_RETURN);
 
     bool has_return = true;
 
@@ -893,8 +869,7 @@ static ASTStmt* parse_return(Parser* parser) {
         ASTExpr* value = parse_expr(parser);
         if (value == NULL)  return NULL;
 
-        if (!expect(parser, TOKEN_SEMICOLON)) return NULL;
-        advance(parser);
+        MATCH_OR_NULL(TOKEN_SEMICOLON);
 
         stmt->value.return_stmt.value = value;
     }
@@ -906,29 +881,25 @@ static ASTStmt* parse_return(Parser* parser) {
 }
 
 static ASTStmt* parse_let(Parser* parser) {
-    if (!expect(parser, TOKEN_LET)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_LET);
 
     if (!expect(parser, TOKEN_IDENT)) return NULL;
     const char* name = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_COLON)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_COLON);
 
     // parse type handelt selber die errors und advanced selber
     const char* type = parse_type(parser);
     if (type == NULL) return NULL;
 
 
-    if (!expect(parser, TOKEN_EQ)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_EQ);
 
     ASTExpr* value = parse_expr(parser);
     if (value == NULL)  return NULL;
 
-    if (!expect(parser, TOKEN_SEMICOLON)) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_SEMICOLON);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
 
@@ -1025,8 +996,7 @@ static bool parse_fn(Parser *parser) {
     const char* function_name = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_LPARENT)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_LPARENT);
 
     ASTTypeNameVec params;
     ASTTypeNameVec_init(&params);
@@ -1038,8 +1008,7 @@ static bool parse_fn(Parser *parser) {
         advance(parser);
 
         // :
-        if (!expect(parser, TOKEN_COLON)) return false;
-        advance(parser);
+        MATCH_OR_FALSE(TOKEN_COLON);
 
         const char* type = parse_type(parser);
         if (type == NULL) return false;
@@ -1060,22 +1029,18 @@ static bool parse_fn(Parser *parser) {
         if (parser->current_token->kind == TOKEN_RPARENT) {
             break;
         }
-        if (!expect(parser, TOKEN_COMMA)) return false;
-        advance(parser);
+        MATCH_OR_FALSE(TOKEN_COMMA);
     }
 
-    if (!expect(parser, TOKEN_RPARENT)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_RPARENT);
 
-    if (!expect(parser, TOKEN_FATARROW)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_FATARROW);
 
     const char* return_type = parse_type(parser);
     if (return_type == NULL) return false;
 
 
-    if (!expect(parser, TOKEN_LBRACE)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_LBRACE);
 
     ASTStmtBlock block = parse_block(parser);
 
@@ -1083,8 +1048,7 @@ static bool parse_fn(Parser *parser) {
         return false;
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_RBRACE);
 
     ASTFunction *f = malloc(sizeof (ASTFunction));
 
@@ -1107,8 +1071,7 @@ static bool parse_struct(Parser *parser) {
     const char* struct_name = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_LBRACE)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_LBRACE);
 
     ASTTypeNameVec fields;
     ASTTypeNameVec_init(&fields);
@@ -1119,8 +1082,7 @@ static bool parse_struct(Parser *parser) {
         advance(parser);
 
         // :
-        if (!expect(parser, TOKEN_COLON)) return false;
-        advance(parser);
+        MATCH_OR_FALSE(TOKEN_COLON);
 
         const char* field_type = parse_type(parser);
         if (field_type == NULL) return false;
@@ -1141,13 +1103,11 @@ static bool parse_struct(Parser *parser) {
         if (parser->current_token->kind == TOKEN_RBRACE) {
             break;
         }
-        if (!expect(parser, TOKEN_COMMA)) return false;
-        advance(parser);
+        MATCH_OR_FALSE(TOKEN_COMMA);
 
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_RBRACE);
 
     ASTStructDef *struct_def = malloc(sizeof (ASTStructDef));
 
@@ -1168,8 +1128,7 @@ static bool parse_enum(Parser *parser) {
     const char* enum_name = parser->current_token->value;
     advance(parser);
 
-    if (!expect(parser, TOKEN_LBRACE)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_LBRACE);
 
 
     StrVec case_names;
@@ -1186,12 +1145,10 @@ static bool parse_enum(Parser *parser) {
             break;
         }
 
-        if (!expect(parser, TOKEN_COMMA)) return false;
-        advance(parser);
+        MATCH_OR_FALSE(TOKEN_COMMA);
     }
 
-    if (!expect(parser, TOKEN_RBRACE)) return false;
-    advance(parser);
+    MATCH_OR_FALSE(TOKEN_RBRACE);
 
     ASTEnumDef *enum_def = malloc(sizeof (ASTEnumDef));
 
