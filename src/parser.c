@@ -915,6 +915,21 @@ static ASTStmt* parse_let(Parser* parser) {
 
     return stmt;
 }
+static ASTStmt* parse_expr_stmt(Parser* parser) {
+    ASTExpr* expr = parse_expr(parser);
+    if (expr == NULL) return NULL;
+
+    MATCH_OR_NULL(TOKEN_SEMICOLON);
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+    if (stmt == NULL) {
+        printf("malloc failed \n");
+        exit(-1);
+    }
+    *stmt = (ASTStmt) {.kind = AST_STMT_EXPR, .value.expr_stmt.expr = expr};
+
+    return stmt;
+}
 
 
 static ASTStmt* parse_statement(Parser* parser) {
@@ -943,11 +958,11 @@ static ASTStmt* parse_statement(Parser* parser) {
             return parse_break(parser);
         break;
         default: 
-            parser->parser_error = (ParserError){.got = parser->current_token->kind, .status = PARSER_ERR_UNEXPECTED_STMT_START, .token_pos = parser->pos};
-            return NULL;
+            return parse_expr_stmt(parser);
         break;
     }
 }
+
 
 static bool current_is_statement(Parser *parser) {
     TokenKind stmt_kinds[] = {TOKEN_LET, TOKEN_IF, TOKEN_WHILE, TOKEN_FOR, TOKEN_BREAK, TOKEN_CONTINUE, TOKEN_RETURN, TOKEN_LBRACE};
@@ -969,18 +984,8 @@ static ASTStmtBlock parse_block(Parser* parser) {
             }
         }
         else {
-            // Statement expr, zb: 1+1;
-            ASTExpr* expr = parse_expr(parser);
-            if (expr == NULL) break;
-            if (!expect(parser, TOKEN_SEMICOLON)) break;
-            advance(parser);
-            ASTStmt* stmt = malloc(sizeof(ASTStmt));
-            if (stmt == NULL) {
-                printf("malloc failed \n");
-                exit(-1);
-            }
-            *stmt = (ASTStmt) {.kind = AST_STMT_EXPR, .value.expr_stmt.expr = expr};
-            if (!ASTStmtVec_push(&statements, stmt)) {
+            ASTStmt* expr_stmt = parse_expr_stmt(parser);
+            if (!ASTStmtVec_push(&statements, expr_stmt)) {
                 printf("Pushing vec failed \n");
                 exit(-1);
             } 
