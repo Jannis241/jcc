@@ -9,6 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        if (arr[i] == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static ASTExpr* parse_expr(Parser* parser);
 
 static bool expect(Parser *parser, TokenKind kind) {
@@ -455,14 +464,6 @@ static ASTExpr* parse_additive(Parser *parser) {
 }
 
 
-static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        if (arr[i] == value) {
-            return true;
-        }
-    }
-    return false;
-}
 
 static ASTExpr* parse_comparison(Parser *parser) {
     ASTExpr *lhs = parse_additive(parser);
@@ -668,13 +669,142 @@ static bool parse_const(Parser *parser) {
     return true;
 }
 
+static ASTStmt* parse_if(Parser* parser) {
+
+}
+static ASTStmt* parse_for(Parser* parser) {
+
+}
+static ASTStmt* parse_while(Parser* parser) {
+
+}
+static ASTStmt* parse_continue(Parser* parser) {
+
+}
+static ASTStmt* parse_break(Parser* parser) {
+
+}
+static ASTStmt* parse_lbrace_stmt(Parser* parser) {
+
+}
+static ASTStmt* parse_return(Parser* parser) {
+
+}
+
+static ASTStmt* parse_let(Parser* parser) {
+    if (!expect(parser, TOKEN_LET)) return NULL;
+    advance(parser);
+
+    if (!expect(parser, TOKEN_IDENT)) return NULL;
+    const char* name = parser->current_token->value;
+    advance(parser);
+
+    if (!expect(parser, TOKEN_COLON)) return NULL;
+    advance(parser);
+
+    const char* type = parse_type(parser);
+    if (type == NULL) return NULL;
+    advance(parser);
+
+
+    if (!expect(parser, TOKEN_EQ)) return NULL;
+    advance(parser);
+
+    ASTExpr* value = parse_expr(parser);
+    if (value == NULL)  return NULL;
+
+    if (!expect(parser, TOKEN_SEMICOLON)) return NULL;
+    advance(parser);
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+
+    if (stmt == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    stmt->kind = AST_STMT_LET;
+    stmt->value.let_stmt.value = value;
+    stmt->value.let_stmt.var_name = name;
+    stmt->value.let_stmt.var_type = type;
+
+    return stmt;
+}
+
+
+static ASTStmt* parse_statement(Parser* parser) {
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+    switch (parser->current_token->kind) {
+        case TOKEN_LET:
+            return parse_let(parser);
+        case TOKEN_IF:
+            return parse_if(parser);
+        break;
+        case TOKEN_FOR:
+            return parse_for(parser);
+        break;
+        case TOKEN_WHILE:
+            return parse_while(parser);
+        break;
+        case TOKEN_RETURN:
+            return parse_return(parser);
+        break;
+        case TOKEN_LBRACE:
+            return parse_lbrace_stmt(parser);
+        break;
+        case TOKEN_CONTINUE:
+            return parse_continue(parser);
+        break;
+        case TOKEN_BREAK:
+            return parse_break(parser);
+        break;
+        default: 
+            parser->parser_error = (ParserError){.got = parser->current_token->kind, .status = PARSER_ERR_UNEXPECTED_STMT_START, .token_pos = parser->pos};
+            return NULL;
+        break;
+    }
+
+    return stmt;
+}
+
+static bool current_is_statement(Parser *parser) {
+    TokenKind stmt_kinds[] = {TOKEN_LET, TOKEN_IF, TOKEN_WHILE, TOKEN_FOR, TOKEN_BREAK, TOKEN_CONTINUE, TOKEN_RETURN, TOKEN_LBRACE};
+    return contains_tokenkind(parser->current_token->kind, stmt_kinds, 7); 
+}
+
 static ASTStmtBlock parse_block(Parser* parser) {
-    // L und R brace wird von der parse_fn() function gehandelt.
-    ASTStmtBlock block;
     ASTStmtVec statements;
     ASTStmtVec_init(&statements);
-    block.statements = statements;
-    return block;
+
+    while (parser->current_token->kind != TOKEN_RBRACE) {
+        if (current_is_statement(parser)) {
+            ASTStmt* stmt = parse_statement(parser);
+            if (stmt == NULL) break;
+            if (!ASTStmtVec_push(&statements, stmt)) {
+                printf("pushing vec failed \n");
+                exit(-1);
+            }
+        }
+        else {
+            // Statement expr, zb: 1+1;
+            ASTExpr* expr = parse_expr(parser);
+            if (expr == NULL) break;
+            if (!expect(parser, TOKEN_SEMICOLON)) break;
+            advance(parser);
+            ASTStmt* stmt = malloc(sizeof(ASTStmt));
+            if (stmt == NULL) {
+                printf("malloc failed \n");
+                exit(-1);
+            }
+            *stmt = (ASTStmt) {.kind = AST_STMT_EXPR, .value.expr_stmt.expr = expr};
+            if (!ASTStmtVec_push(&statements, stmt)) {
+                printf("Pushing vec failed \n");
+                exit(-1);
+            } 
+        }
+    }
+
+    return (ASTStmtBlock) {.statements = statements};
 }
 
 static bool parse_fn(Parser *parser) {
