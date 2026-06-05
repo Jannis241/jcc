@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (size_t i = 0; i < token_res.tokens.num_of_tokens; i++) {
+        printf("%zu.", i);
         print_out_token(&token_res.tokens.data[i]);
     }
 

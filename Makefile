@@ -2,7 +2,7 @@ SHELL := /bin/sh
 .DELETE_ON_ERROR:
 
 TARGET ?= app
-MODE ?= sanitize
+MODE ?= release
 RUN_ENV ?=
 
 # If a src/ directory exists, build sources from there. Otherwise build C files
