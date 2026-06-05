@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         printf("[PARSER SUCCESS]\n");
         break;
     case PARSER_ERR_UNEXPECTED_EXPR_START:
-        printf("PARSER_ERR_UNEXPECTED_EXPR_START\n");
+        printf("PARSER_ERR_UNEXPECTED_EXPR_START  got: %s, pos: %zu \n",token_kind_name(parser_result.error.got), parser_result.error.token_pos);
         return 1;
     case PARSER_ERR_INVALID_CHAR_LITERAL:
         printf("PARSER_ERR_INVALID_CHAR_LITERAL \n");

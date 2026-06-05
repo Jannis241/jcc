@@ -1,8 +1,15 @@
-- man könnte safe dieses ganze if(expect) return null; advance in ein makro packen
+- syntax genau überlegen ob jetzt eher so c mäßig zb:
+
+int test() {}
+
+und for (int i = 0...)
+
+oder rust mäßiig 
+
 - Statement-Parser vereinheitlichen:
-    - Eine Funktion bauen, die alle Statement-Arten parst, auch Expr-Statements.
-    - Aktuell kann `parse_block` Expr-Statements parsen, `parse_statement` aber nicht.
-    - Das blockiert besonders `for (...; ...; i++;)`.
+    - Eine Funktion bauen, die alle Statement-Arten parst, auch Expr-Statements. ======> gefixxt
+    - Aktuell kann `parse_block` Expr-Statements parsen, `parse_statement` aber nicht. =============> gefixxt
+    - Das blockiert besonders `for (...; ...; i++;)`. =========> ?
 
 - Assignments implementieren:
     - `target = value;` -> `AST_STMT_ASSIGN`

@@ -99,7 +99,7 @@ fn loops(limit: int) => int {
         }
     }
 
-    for (let j: int = 0; j < 3 { j++; }) {
+    for (let j: int = 0; j < 3 ; j++) {
         print("for", j);
     }
 

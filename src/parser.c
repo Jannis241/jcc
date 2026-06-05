@@ -735,18 +735,17 @@ static ASTStmt* parse_if(Parser* parser) {
 }
 static ASTStmt* parse_for(Parser* parser) {
     MATCH_OR_NULL(TOKEN_FOR);
-
     MATCH_OR_NULL(TOKEN_LPARENT);
 
     ASTStmt* init = parse_statement(parser);
     if (init == NULL) return NULL;
     ASTExpr* cond = parse_expr(parser);
     if (cond == NULL) return NULL;
+    advance(parser);
     ASTStmt* action = parse_statement(parser);
     if (action == NULL) return NULL;
 
     MATCH_OR_NULL(TOKEN_RPARENT);
-
     MATCH_OR_NULL(TOKEN_LBRACE);
 
     ASTStmtBlock block = parse_block(parser);
@@ -919,7 +918,10 @@ static ASTStmt* parse_expr_stmt(Parser* parser) {
     ASTExpr* expr = parse_expr(parser);
     if (expr == NULL) return NULL;
 
-    MATCH_OR_NULL(TOKEN_SEMICOLON);
+    if (parser->current_token->kind != TOKEN_RPARENT) {
+        MATCH_OR_NULL(TOKEN_SEMICOLON);
+    }
+
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
     if (stmt == NULL) {
