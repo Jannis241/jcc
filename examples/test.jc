@@ -15,14 +15,14 @@ fn main() => int{
     }
 
     if (x ==3 || 3 != 2) {
-        print("if") 
+        print("if") ;
     }
     else if (true) {
 
-        print("else if") 
-    }
+       print("else if") ;
+  }
     else {
-        print("else") 
+        print("else") ;
 
     }
 }

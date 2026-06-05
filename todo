@@ -1,7 +1,3 @@
-- mit struct literals aufpassen und checks einbauen (bei if besondres, nicht dass zb if enabled {} als struct gehandelt wird)
-- dazu jetzt noch die richtigen syntax regeln festlegen!
-- parse_block function implmentieren (achtung die letzte)
-
 - zweite Branch machen: 
     - Errors evntl einfach printen und exiten?
     - performance optimieren

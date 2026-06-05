@@ -689,6 +689,10 @@ static ASTStmt* parse_if(Parser* parser) {
 
     ASTStmtBlock block = parse_block(parser);
 
+    if (parser->parser_error.status != PARSER_OK) {
+        return NULL;
+    }
+
     if (!expect(parser, TOKEN_RBRACE)) return NULL;
     advance(parser);
 
@@ -706,13 +710,26 @@ static ASTStmt* parse_if(Parser* parser) {
         advance(parser);
 
         if (parser->current_token->kind == TOKEN_IF) {
-            parse_if(parser);
+
+            ASTStmt* if_stmt = parse_if(parser);
+            if (if_stmt == NULL) return NULL;
+
+            ASTStmtVec statements;
+            ASTStmtVec_init(&statements);
+            ASTStmtVec_push(&statements, if_stmt);
+
+            // eine block manuell erschaffen mit nur dem einzelnen if stmt drin
+            stmt->value.if_stmt.optional_else_block = (ASTStmtBlock) {.statements = statements}; 
+            stmt->value.if_stmt.has_else = true;
         }
         else {
             if (!expect(parser, TOKEN_LBRACE)) return NULL;
             advance(parser);
 
             ASTStmtBlock block = parse_block(parser);
+            if (parser->parser_error.status != PARSER_OK) {
+                return NULL;
+            }
 
             if (!expect(parser, TOKEN_RBRACE)) return NULL;
             advance(parser);
@@ -744,6 +761,10 @@ static ASTStmt* parse_for(Parser* parser) {
     advance(parser);
 
     ASTStmtBlock block = parse_block(parser);
+
+    if (parser->parser_error.status != PARSER_OK) {
+        return NULL;
+    }
 
     if (!expect(parser, TOKEN_RBRACE)) return NULL;
     advance(parser);
@@ -780,6 +801,10 @@ static ASTStmt* parse_while(Parser* parser) {
     advance(parser);
 
     ASTStmtBlock block = parse_block(parser);
+
+    if (parser->parser_error.status != PARSER_OK) {
+        return NULL;
+    }
 
     if (!expect(parser, TOKEN_RBRACE)) return NULL;
     advance(parser);
@@ -829,6 +854,10 @@ static ASTStmt* parse_new_scope(Parser* parser) {
     advance(parser);
 
     ASTStmtBlock block = parse_block(parser);
+
+    if (parser->parser_error.status != PARSER_OK) {
+        return NULL;
+    }
 
     if (!expect(parser, TOKEN_RBRACE)) return NULL;
     advance(parser);
