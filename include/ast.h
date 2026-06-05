@@ -255,4 +255,6 @@ typedef struct {
     ASTConstVec  constants;
 } AST;
 
+void print_ast(const AST *ast);
+
 #endif

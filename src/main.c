@@ -113,8 +113,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    for (size_t i = 0; i < parser_result.ast.constants.len; i++) {
-        printf("%s: %s = '%s' \n", parser_result.ast.constants.data[i]->name, parser_result.ast.constants.data[i]->type, parser_result.ast.constants.data[i]->value->value.literal_value);
-    }
+    print_ast(&parser_result.ast);
 
 }
