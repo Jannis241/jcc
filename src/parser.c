@@ -63,8 +63,8 @@ static ASTExpr* parse_primary(Parser *parser) {
                 // parsing struct literal 
                 ASTExprStructLiteral struct_literal = {.name = parser->current_token->value};
 
-                ASTNameExprVec* fields = malloc(sizeof(ASTNameExprVec));
-                ASTNameExprVec_init(fields);
+                ASTNameExprVec fields;
+                ASTNameExprVec_init(&fields);
 
 
                 advance(parser); // auf dem {
@@ -82,13 +82,15 @@ static ASTExpr* parse_primary(Parser *parser) {
                     if (!expect(parser, TOKEN_COLON)) return NULL;
                     advance(parser);
 
-                    if (!expect(parser, TOKEN_IDENT)) return NULL;
-                    advance(parser);
                     ASTExpr* value = parse_expr(parser);
+
+                    if (value == NULL) {
+                        return NULL;
+                    }
 
                     ASTNameExpr *p = malloc(sizeof(ASTNameExpr));
                     *p = (ASTNameExpr) {.name = field_name, .expr = value};
-                    ASTNameExprVec_push(fields, p);
+                    ASTNameExprVec_push(&fields, p);
 
                     if (parser->current_token->kind == TOKEN_RBRACE) {
                         advance(parser);
@@ -97,6 +99,7 @@ static ASTExpr* parse_primary(Parser *parser) {
                     if (!expect(parser, TOKEN_COMMA)) return NULL;
                     advance(parser);
                 }
+                struct_literal.fields = fields;
                 *node = (ASTExpr){.kind = AST_EXPR_STRUCT_LITERAL, .value.struct_literal = struct_literal};   
 
 
@@ -121,9 +124,8 @@ static ASTExpr* parse_primary(Parser *parser) {
             advance(parser);
             ASTExpr* inner = parse_expr(parser);
             if (!expect(parser, TOKEN_RPARENT)) return NULL;
+            *node = (ASTExpr){.kind = AST_EXPR_GROUPING, .value.grouping_inner = inner};   
             advance(parser);
-
-
         break;
         case TOKEN_LBRACKET:
             advance(parser);
@@ -159,11 +161,8 @@ static ASTExpr* parse_postfix(Parser *parser) {
 }
 static ASTExpr* parse_unary(Parser *parser) {
 }
-
 static ASTExpr* parse_multiplacative(Parser *parser) {
 }
-
-
 static ASTExpr* parse_additive(Parser *parser) {
 }
 
