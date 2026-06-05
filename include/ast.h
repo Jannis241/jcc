@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
 #include "vector.h"
-#include<stdbool.h>
+#include <stdbool.h>
 
 typedef struct {
     char* type;
@@ -27,6 +27,7 @@ typedef enum {
     BINOP_AND,
     BINOP_OR,
 } BinOp;
+
 
 typedef enum {
     UNARY_NEG,
@@ -253,7 +254,5 @@ typedef struct {
     ASTEnumDefVec enum_defs;
     ASTConstVec  constants;
 } AST;
-
-
 
 #endif

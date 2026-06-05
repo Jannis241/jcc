@@ -1,0 +1,7 @@
+- auf memeory und lifetimes aufpassen
+- recherchieren wei man das mit arenas etc mahcen würde
+- zweite branch machen wo dann performance optimiert ist? oder ziel ein interpreter möglichst klein und schnell? 
+- muss ich errors wirklich returnen? ich könnte doch oft auch einfach den error printen und dann exiten weil ich in main
+  eh nicht mehr context habe, dann vermeide ich diese ganze chain
+  - gucken wegen lifetimes, immer wenn LHS durch eine binaryop neu erstellt wird und kein pointer mehr von oben ist, sollte es 
+ doch eigenltic nciht mehr gehen oder? weil man returnt ja gar kei npointer mehr und falls doch dann zeigt dieser pointer auf eine lokale variable?!??!?!?!?

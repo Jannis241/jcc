@@ -1,6 +1,8 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,19 +17,18 @@ static bool expect(Parser *parser, TokenKind kind) {
     return true;
 }
 
-static Token *peek(Parser *parser) {
+static inline Token *peek(Parser *parser) {
     return &parser->tokens->data[parser->pos + 1];
 }
-static Token *peek2(Parser *parser) {
+static inline Token *peek2(Parser *parser) {
     return &parser->tokens->data[parser->pos + 2];
 }
 
-static void advance(Parser *parser) {
+
+static inline void advance(Parser *parser) {
     parser->pos += 1;
     parser->current_token = &parser->tokens->data[parser->pos];
 }
-
-
 
 static ASTExpr* parse_primary(Parser *parser) {
     ASTExpr* node = malloc(sizeof(ASTExpr));
@@ -143,15 +144,104 @@ static ASTExpr* parse_primary(Parser *parser) {
             parser->parser_error = (ParserError){.got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_EXPR_START} ;
             return NULL;
     }
+    printf("returning primary \n");
     return node;
 }
+static ASTExpr* finish_call(Parser *parser) {
+}
+static ASTExpr* parse_postfix(Parser *parser) {
+}
+static ASTExpr* parse_unary(Parser *parser) {
+}
 
-// static ASTExpr* parse_equality(Parser *parser) {
-//
-// }Vk
+static ASTExpr* parse_multiplacative(Parser *parser) {
+}
+
+
+static ASTExpr* parse_additive(Parser *parser) {
+}
+
+
+static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        if (arr[i] == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static ASTExpr* parse_comparison(Parser *parser) {
+    ASTExpr *lhs = parse_primary(parser);
+
+    TokenKind comparisons[4] = {TOKEN_LT, TOKEN_GT, TOKEN_GTEQ, TOKEN_LTEQ};
+
+    while (contains_tokenkind(parser->current_token->kind, comparisons, 4)) {
+        BinOp op;
+
+        switch (parser->current_token->kind) {
+            case TOKEN_LT:
+                op = BINOP_LT;
+            break;
+            case TOKEN_GT:
+                op = BINOP_GT;
+            break;
+            case TOKEN_GTEQ:
+                op = BINOP_GE;
+            break;
+            case TOKEN_LTEQ:
+                op = BINOP_LE;
+            break;
+            default: 
+                printf("Shouldnt be here (parser.c, parse_comparison()) \n");
+                exit(-1);
+            break;
+        }
+        advance(parser);
+
+        ASTExpr *rhs = parse_primary(parser);
+
+        ASTExpr new_lhs; 
+
+        new_lhs.kind = AST_EXPR_BINARY;
+        new_lhs.value.binary.lhs = lhs;
+        new_lhs.value.binary.rhs = rhs;
+        new_lhs.value.binary.op = op;
+    }
+    return lhs;
+}
+
+
+static ASTExpr* parse_equality(Parser *parser) {
+    ASTExpr *lhs = parse_comparison(parser);
+    if (lhs == NULL) {
+        return lhs;
+    }
+
+    while (parser->current_token->kind == TOKEN_EQEQ || parser->current_token->kind == TOKEN_BANGEQ) {
+        BinOp op;
+        if (parser->current_token->kind == TOKEN_EQEQ) {
+            op = BINOP_EQ;
+        }
+        else {
+            op = BINOP_NE;
+        }
+
+        advance(parser);
+        ASTExpr *rhs = parse_comparison(parser);
+
+        ASTExpr new_lhs; 
+
+        new_lhs.kind = AST_EXPR_BINARY;
+        new_lhs.value.binary.lhs = lhs;
+        new_lhs.value.binary.rhs = rhs;
+        new_lhs.value.binary.op = op;
+    }
+    return lhs;
+}
 
 static ASTExpr* parse_and(Parser *parser) {
-    ASTExpr* lhs = parse_primary(parser);
+    ASTExpr* lhs = parse_equality(parser);
 
     if (lhs == NULL) {
         return lhs;
@@ -159,10 +249,8 @@ static ASTExpr* parse_and(Parser *parser) {
 
     while (parser->current_token->kind == TOKEN_AMP_AMP) {
         advance(parser);
-        ASTExpr* rhs = parse_primary(parser);
-        ASTExprBinary expr_bin = {.lhs = lhs, .rhs = rhs, .op = BINOP_AND};
+        ASTExpr* rhs = parse_equality(parser);
         ASTExpr new_lhs; 
-
         new_lhs.kind = AST_EXPR_BINARY;
         new_lhs.value.binary.lhs = lhs;
         new_lhs.value.binary.rhs = rhs;
@@ -182,7 +270,6 @@ static ASTExpr* parse_or(Parser *parser) {
     while (parser->current_token->kind == TOKEN_PIPE_PIPE) {
         advance(parser);
         ASTExpr* rhs = parse_and(parser);
-        ASTExprBinary expr_bin = {.lhs = lhs, .rhs = rhs, .op = BINOP_OR};
         ASTExpr new_lhs; 
 
         new_lhs.kind = AST_EXPR_BINARY;

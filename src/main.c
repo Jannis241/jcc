@@ -17,7 +17,6 @@ static char *read_file(const char *path) {
         perror("fopen");
         return NULL;
     }
-
     fseek(file, 0, SEEK_END);
     long size = ftell(file);
     rewind(file);
@@ -107,7 +106,7 @@ int main(int argc, char *argv[]) {
         printf("PARSER_ERR_UNEXPECTED_TOKEN: expected: %s, got: %s, pos: %zu \n", token_kind_name(parser_result.error.expected),token_kind_name(parser_result.error.got), parser_result.error.token_pos);
         return 1;
     case PARSER_ERR_UNEXPECTED_TOP_LEVEL:
-        printf("PARSER_ERR_UNEXPECTED_TOP_LEVEL\n");
+        printf("PARSER_ERR_UNEXPECTED_TOP_LEVEL: got %s \n", token_kind_name(parser_result.error.got));
         return 1;
     case PARSER_ERR_UNEXPECTED_EOF:
         printf("PARSER_ERR_UNEXPECTED_EOF\n");
@@ -115,7 +114,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (size_t i = 0; i < parser_result.ast.constants.len; i++) {
-        printf("%s: %s = '%s' \n", parser_result.ast.constants.data[i]->name, parser_result.ast.constants.data[i]->type, parser_result.ast.constants.data[i]->value);
+        printf("%s: %s = '%s' \n", parser_result.ast.constants.data[i]->name, parser_result.ast.constants.data[i]->type, parser_result.ast.constants.data[i]->value->value.literal_value);
     }
 
 }

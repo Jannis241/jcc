@@ -1,5 +1,1 @@
-const t: int = true || false;
-const t2: int = false || false;
-const t3: int = true && false;
-const t4: int = 3;
-const t5: int = "hallo";
+const t: bool = 34 < 35 && 25 > 5;
