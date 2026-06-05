@@ -1,6 +1,8 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
+#include <math.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -82,7 +84,7 @@ static ASTExpr* parse_primary(Parser *parser) {
                         break;
                     }
                     if (!expect(parser, TOKEN_IDENT)) return NULL;
-                    char* field_name = parser->current_token->value;
+                    const char* field_name = parser->current_token->value;
                     advance(parser);
 
                     if (!expect(parser, TOKEN_COLON)) return NULL;
@@ -115,10 +117,10 @@ static ASTExpr* parse_primary(Parser *parser) {
             }
             // ident::ident ==> enum
             else if (peek(parser)->kind == TOKEN_COLONCOLON && peek2(parser)->kind == TOKEN_IDENT) {
-                char* enum_name = parser->current_token->value; 
+                const char* enum_name = parser->current_token->value; 
                 advance(parser);
                 advance(parser);
-                char* case_name = parser->current_token->value; 
+                const char* case_name = parser->current_token->value; 
                 ASTExprEnumLiteral elit = {.enum_name = enum_name, .case_name = case_name};
                *node = (ASTExpr){.kind = AST_EXPR_ENUM_LITERAL, .value.enum_literal = elit};   
                 advance(parser);
@@ -171,15 +173,250 @@ static ASTExpr* parse_primary(Parser *parser) {
 
     return node;
 }
-static ASTExpr* finish_call(Parser *parser) {
+static ASTExpr* finish_call(Parser *parser, ASTExpr* callee) {
+    ASTExprVec args;
+    ASTExprVec_init(&args);
+
+    if (parser->current_token->kind != TOKEN_RPARENT) {
+        ASTExpr* expr = parse_expr(parser);
+        if (expr == NULL) return NULL;
+        if (!ASTExprVec_push(&args, expr)) {
+            printf("Pushing ast expr vec failed.. \n");
+            exit(-1);
+        };
+
+        while (parser->current_token->kind == TOKEN_COMMA) {
+            advance(parser);
+            ASTExpr* expr = parse_expr(parser);
+            if (expr == NULL) return NULL;
+            if (!ASTExprVec_push(&args, expr)) {
+                printf("Pushing ast expr vec failed.. \n");
+                exit(-1);
+            };
+        }
+    }
+    if (!expect(parser, TOKEN_RPARENT)) return NULL;
+    advance(parser);
+
+    ASTExpr* new_expr = malloc(sizeof(ASTExpr));
+
+    if (new_expr == NULL) {
+        printf("Malloc failed.. \n");
+        exit(-1);
+    }
+
+    new_expr->kind = AST_EXPR_CALL;
+    new_expr->value.call.function_name = callee;
+    new_expr->value.call.params = args;
+    
+    return new_expr;
 }
+
 static ASTExpr* parse_postfix(Parser *parser) {
+    ASTExpr* expr = parse_primary(parser);
+    if (expr == NULL) return NULL;
+
+    while (1) {
+        // <expr>(
+        if (parser->current_token->kind == TOKEN_LPARENT) {
+            advance(parser);
+            ASTExpr* func_res = finish_call(parser, expr); 
+            if (func_res == NULL) return NULL;
+            expr = func_res;
+        }
+        // <expr>.
+        else if (parser->current_token->kind == TOKEN_DOT) {
+            advance(parser);
+            if (!expect(parser, TOKEN_IDENT)) return NULL;
+            const char* field_name = parser->current_token->value;
+
+            advance(parser);
+
+            ASTExpr* new_expr = malloc(sizeof(ASTExpr));
+
+            if (new_expr == NULL) {
+                printf("Malloc failed \n");
+                exit(-1);
+            }
+
+            new_expr->kind = AST_EXPR_FIELD_ACCESS;
+            new_expr->value.field_access.field_name = field_name;
+            new_expr->value.field_access.obj = expr;
+            expr = new_expr;
+        }
+        // <expr>[
+        else if (parser->current_token->kind == TOKEN_LBRACKET) {
+            advance(parser);
+            ASTExpr* expr = parse_expr(parser);
+            if (expr == NULL) return NULL;
+
+            if (!expect(parser, TOKEN_RBRACKET)) return NULL;
+
+            advance(parser);
+
+            ASTExpr* new_expr = malloc(sizeof(ASTExpr));
+
+            if (new_expr == NULL) {
+                printf("Malloc failed \n");
+                exit(-1);
+            }
+
+            new_expr->kind = AST_EXPR_POSTFIX;
+            new_expr->value.postfix.op = POSTFIX_OP_BRACKETS;
+            new_expr->value.postfix.expr = expr;
+            expr = new_expr;
+        }
+        else if (parser->current_token->kind == TOKEN_PLUSPLUS) {
+            advance(parser);
+
+            ASTExpr* new_expr = malloc(sizeof(ASTExpr));
+
+            if (new_expr == NULL) {
+                printf("Malloc failed \n");
+                exit(-1);
+            }
+
+            new_expr->kind = AST_EXPR_POSTFIX;
+            new_expr->value.postfix.op = POSTFIX_OP_PLUSPLUS;
+            new_expr->value.postfix.expr = expr;
+            expr = new_expr;
+        }
+        else if (parser->current_token->kind == TOKEN_MINUSMINUS) {
+            advance(parser);
+
+            ASTExpr* new_expr = malloc(sizeof(ASTExpr));
+
+            if (new_expr == NULL) {
+                printf("Malloc failed \n");
+                exit(-1);
+            }
+
+            new_expr->kind = AST_EXPR_POSTFIX;
+            new_expr->value.postfix.op = POSTFIX_OP_MINUSMINUS;
+            new_expr->value.postfix.expr = expr;
+            expr = new_expr;
+        }
+        else {
+            break;
+        }
+    }
+    return expr;
 }
+
+
 static ASTExpr* parse_unary(Parser *parser) {
+    if (parser->current_token->kind == TOKEN_PLUS) {
+        // 3 - +3 => + ist egal
+        advance(parser);
+    }
+
+    UnaryOp op;
+
+    
+    if (parser->current_token->kind == TOKEN_MINUS) {
+        op = UNARY_NEG;
+    }
+    else if(parser->current_token->kind == TOKEN_BANG) {
+        op = UNARY_NOT;
+    }
+    else {
+        return parse_postfix(parser);
+    }
+
+    advance(parser);
+
+    ASTExpr* value = parse_expr(parser);
+
+    if (value == NULL) return NULL;
+
+    ASTExpr* unary_expr = malloc(sizeof(ASTExpr));
+
+    if (unary_expr == NULL) {
+        printf("Malloc failed.. \n");
+        exit(-1);
+    }
+
+    unary_expr->kind = AST_EXPR_UNARY; 
+    unary_expr->value.unary.op = op;
+    unary_expr->value.unary.expr = value;
+
+    return unary_expr;
 }
 static ASTExpr* parse_multiplacative(Parser *parser) {
+    ASTExpr *lhs = parse_unary(parser);
+
+    if (lhs == NULL) {
+        return NULL;
+    }
+
+    while (parser->current_token->kind == TOKEN_STAR || parser->current_token->kind == TOKEN_SLASH ||parser->current_token->kind == TOKEN_PERCENT) {
+        BinOp op;
+        if (parser->current_token->kind == TOKEN_STAR) {
+            op = BINOP_MUL;
+        }
+        else if (parser->current_token->kind == TOKEN_SLASH){
+            op = BINOP_DIV;
+        }
+        else {
+            op = BINOP_MOD;
+        }
+        advance(parser);
+
+        ASTExpr *rhs = parse_unary(parser);
+
+        if (rhs == NULL) {
+            return NULL;
+        }
+
+        ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
+        if (new_lhs == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        new_lhs->kind = AST_EXPR_BINARY;
+        new_lhs->value.binary.lhs = lhs;
+        new_lhs->value.binary.rhs = rhs;
+        new_lhs->value.binary.op = op;
+        lhs = new_lhs;
+    }
+    return lhs;
 }
+
 static ASTExpr* parse_additive(Parser *parser) {
+    ASTExpr *lhs = parse_multiplacative(parser);
+
+    if (lhs == NULL) {
+        return NULL;
+    }
+
+    while (parser->current_token->kind == TOKEN_PLUS || parser->current_token->kind == TOKEN_MINUS) {
+        BinOp op;
+        if (parser->current_token->kind == TOKEN_PLUS) {
+            op = BINOP_ADD;
+        }
+        else {
+            op = BINOP_SUB;
+        }
+        advance(parser);
+
+        ASTExpr *rhs = parse_multiplacative(parser);
+
+        if (rhs == NULL) {
+            return NULL;
+        }
+
+        ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
+        if (new_lhs == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        new_lhs->kind = AST_EXPR_BINARY;
+        new_lhs->value.binary.lhs = lhs;
+        new_lhs->value.binary.rhs = rhs;
+        new_lhs->value.binary.op = op;
+        lhs = new_lhs;
+    }
+    return lhs;
 }
 
 
@@ -193,7 +430,7 @@ static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
 }
 
 static ASTExpr* parse_comparison(Parser *parser) {
-    ASTExpr *lhs = parse_primary(parser);
+    ASTExpr *lhs = parse_additive(parser);
 
     if (lhs == NULL) {
         return NULL;
@@ -224,7 +461,7 @@ static ASTExpr* parse_comparison(Parser *parser) {
         }
         advance(parser);
 
-        ASTExpr *rhs = parse_primary(parser);
+        ASTExpr *rhs = parse_additive(parser);
 
         if (rhs == NULL) {
             return NULL;
@@ -351,7 +588,7 @@ static ASTExpr* parse_expr(Parser *parser) {
 // -----------------------------
 
 static void parse_fn(Parser *parser) {
-
+    printf("Todo: implement parse_fn() \n");
 }
 
 static bool parse_const(Parser *parser) {
@@ -360,14 +597,14 @@ static bool parse_const(Parser *parser) {
     // V1 zeigt einfach direkt auf die value,
     // da TokenVec in main eh lang genug lebt
     // (könnte man optimieren)
-    char* name = parser->current_token->value;
+    const char* name = parser->current_token->value;
     advance(parser);
 
     if (!expect(parser, TOKEN_COLON)) return false; 
     advance(parser);
 
     if (!expect(parser, TOKEN_IDENT)) return false; 
-    char* type = parser->current_token->value;
+    const char* type = parser->current_token->value;
     advance(parser);
 
     if (!expect(parser, TOKEN_EQ)) return false; 
@@ -401,10 +638,11 @@ static bool parse_const(Parser *parser) {
 }
 
 static void parse_struct(Parser *parser) {
+    printf("Todo: implement parse_struct() \n");
 
 }
 static void parse_enum(Parser *parser) {
-
+    printf("Todo: implement parse_enum() \n");
 }
 
 

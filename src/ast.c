@@ -83,6 +83,8 @@ static const char *bin_op_name(BinOp op) {
         return "BINOP_MUL";
     case BINOP_DIV:
         return "BINOP_DIV";
+    case BINOP_MOD:
+        return "BINOP_MOD";
     case BINOP_EQ:
         return "BINOP_EQ";
     case BINOP_NE:
@@ -141,6 +143,8 @@ static const char *expr_kind_name(ASTExprKind kind) {
         return "AST_EXPR_CALL";
     case AST_EXPR_FIELD_ACCESS:
         return "AST_EXPR_FIELD_ACCESS";
+    case AST_EXPR_POSTFIX:
+        return "AST_EXPR_POSTFIX";
     case AST_EXPR_VARIABLE:
         return "AST_EXPR_VARIABLE";
     case AST_EXPR_GROUPING:
@@ -179,6 +183,19 @@ static const char *stmt_kind_name(ASTStmtKind kind) {
     }
 
     return "AST_STMT_UNKNOWN";
+}
+
+static const char *postfix_op_name(PostFixOp op) {
+    switch (op) {
+    case POSTFIX_OP_BRACKETS:
+        return "POSTFIX_OP_BRACKETS";
+    case POSTFIX_OP_MINUSMINUS:
+        return "POSTFIX_OP_MINUSMINUS";
+    case POSTFIX_OP_PLUSPLUS:
+        return "POSTFIX_OP_PLUSPLUS";
+    }
+
+    return "POSTFIX_OP_UNKNOWN";
 }
 
 static void print_expr(const ASTExpr *expr, size_t indent);
@@ -292,8 +309,8 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
         print_expr(expr->value.unary.expr, indent + 4);
         break;
     case AST_EXPR_CALL:
-        print_string_field(indent + 2, "function_name",
-                           expr->value.call.function_name);
+        print_line(indent + 2, "function_name:");
+        print_expr(expr->value.call.function_name, indent + 4);
         print_line(indent + 2, "params: %zu", expr->value.call.params.len);
         print_expr_vec(&expr->value.call.params, indent + 4);
         break;
@@ -306,6 +323,12 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
     case AST_EXPR_VARIABLE:
         print_string_field(indent + 2, "variable_name",
                            expr->value.variable_name);
+        break;
+    case AST_EXPR_POSTFIX:
+        print_line(indent + 2, "op: %s",
+                   postfix_op_name(expr->value.postfix.op));
+        print_line(indent + 2, "expr:");
+        print_expr(expr->value.postfix.expr, indent + 4);
         break;
     case AST_EXPR_GROUPING:
         print_line(indent + 2, "inner:");

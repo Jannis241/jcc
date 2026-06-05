@@ -17,6 +17,7 @@ typedef enum {
     BINOP_SUB,
     BINOP_MUL,
     BINOP_DIV,
+    BINOP_MOD,
     BINOP_EQ,
     BINOP_NE,
     BINOP_LT,
@@ -50,6 +51,7 @@ typedef enum {
     AST_EXPR_UNARY,
     AST_EXPR_CALL,  
     AST_EXPR_FIELD_ACCESS,
+    AST_EXPR_POSTFIX,
     AST_EXPR_VARIABLE,
 
     AST_EXPR_GROUPING,   
@@ -189,7 +191,7 @@ typedef struct {
 VECTOR_DEFINE(ASTExpr*, ASTExprVec)
 
 typedef struct ASTExprCall {
-    const char* function_name;
+    ASTExpr* function_name;
     ASTExprVec params;
 } ASTExprCall;
 
@@ -200,18 +202,31 @@ typedef struct ASTExprFieldAccess {
 } ASTExprFieldAccess;
 
 
+typedef enum PostFixOp {
+    POSTFIX_OP_BRACKETS,
+    POSTFIX_OP_MINUSMINUS,
+    POSTFIX_OP_PLUSPLUS,
+} PostFixOp;
+
+typedef struct ASTExprPostfix {
+    PostFixOp op;
+    ASTExpr* expr;
+} ASTExprPostfix;
+
+
 struct ASTExpr{
     ASTExprKind kind;
     union {
-        char* literal_value;
+        const char* literal_value;
         ASTExprStructLiteral struct_literal;
         ASTExprEnumLiteral enum_literal;
         ASTExprBinary binary;
         ASTExprUnary unary;
         ASTExprCall call;
         ASTExprFieldAccess field_access;
+        ASTExprPostfix postfix;
         ASTExpr* grouping_inner;
-        char* variable_name;
+        const char* variable_name;
         ASTExprVec list_literal;
     } value;
 } ;
