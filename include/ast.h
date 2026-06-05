@@ -113,10 +113,21 @@ typedef struct {
     ASTExpr* condition;
     ASTStmtBlock code_block;
 } ASTStmtWhile;
+typedef struct {
+    ASTExpr* target;
+    ASTExpr* value;
+} ASTStmtAssign;
 
 typedef struct {
-    char* var_name;
+    // for (int i = 0;)
+    ASTStmtAssign var_assign;
+
+    // for (int i = 0; i < 10)
     ASTExpr* condition;
+
+    // for (int i = 0; i < 10; i++)
+    ASTStmtAssign action;
+
     ASTStmtBlock code_block;
 } ASTStmtFor;
 
@@ -125,10 +136,6 @@ typedef struct {
     ASTExpr* value; // kann auch void sein
 } ASTStmtReturn;
 
-typedef struct {
-    ASTExpr* target;
-    ASTExpr* value;
-} ASTStmtAssign;
 
 typedef struct {
     ASTExpr* target;
