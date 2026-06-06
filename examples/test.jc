@@ -1,10 +1,15 @@
 fn main() {
     match (3+3) {
-        6 => {
+        (6 / 2) => {
             print("es war 6");
         }
-        3 => {
+        (3) => {
+            print("mit klammern");
+        }
+        (3 * 3 - 2) => {
             print("es war 3");
         }
+
+        (e) => {}
     }
 }

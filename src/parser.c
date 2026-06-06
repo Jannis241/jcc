@@ -1255,9 +1255,11 @@ static ASTStmt* parse_match(Parser* parser) {
                 make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_RBRACE);
             return NULL;
         }
+        MATCH_OR_NULL(TOKEN_LPARENT);
 
         ASTExpr* case_expr = parse_expr(parser);
         if (case_expr == NULL) return NULL;
+        MATCH_OR_NULL(TOKEN_RPARENT);
 
         MATCH_OR_NULL(TOKEN_FATARROW);
         MATCH_OR_NULL(TOKEN_LBRACE);
