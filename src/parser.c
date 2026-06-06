@@ -142,6 +142,18 @@ static const char* parse_type(Parser *parser) {
 
     const char* type = parser->current_token->value;
     advance(parser);
+
+    if (parser->current_token->kind == TOKEN_STAR) {
+        char* pointer_type = malloc(strlen(type) + 3);
+        if (pointer_type == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        sprintf(pointer_type, "%s*", type);
+        advance(parser);
+        return pointer_type;
+    }
+
     return type;
 }
 
@@ -177,6 +189,13 @@ static ASTExpr* parse_primary(Parser *parser) {
         case TOKEN_FALSE:
             *node = (ASTExpr){.kind = AST_EXPR_BOOL_LITERAL, .value.literal_value = parser->current_token->value};   
             advance(parser);
+        break;
+        case TOKEN_AMP:
+            advance(parser);
+            ASTExpr* primary = parse_primary(parser);
+
+            *node = (ASTExpr){.kind = AST_EXPR_ADDR_LITERAL, .value.literal_value = parser->current_token->value};   
+
         break;
         case TOKEN_IDENT:
             // ident { ==> struct

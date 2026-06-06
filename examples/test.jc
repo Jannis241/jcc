@@ -1,5 +1,6 @@
 fn main() {
-    !!true;
-    const x: [int] = [1,2];
-    x as [int];
+    let a: int* = 3;
+
+    let b: int* = &a;
+
 }

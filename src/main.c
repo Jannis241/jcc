@@ -1,5 +1,5 @@
-#include "../include/ast.h"
-#include "../include/lexer.h"
+#include "../include/interpreter.h"
+#include "../include/parser.h"
 #include "../include/parser.h"
 
 #include <stddef.h>
@@ -195,4 +195,5 @@ int main(int argc, char *argv[]) {
     printf("[PARSER SUCCESS]\n");
 
     print_ast(&parser_result.ast);
+    interpret_ast(&parser_result.ast);
 }
