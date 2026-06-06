@@ -1,8 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "lexer.h"
 #include "ast.h"
+#include "lexer.h"
 #include <stddef.h>
 
 typedef enum {
@@ -13,7 +13,7 @@ typedef enum {
     PARSER_ERR_UNEXPECTED_EXPR_START,
     PARSER_ERR_INVALID_CHAR_LITERAL,
     PARSER_ERR_UNEXPECTED_STMT_START,
-
+    PARSER_ERR_INVALID_ASSIGNMENT_TARGET,
 } ParserStatus;
 
 typedef struct {
@@ -24,9 +24,9 @@ typedef struct {
 } ParserError;
 
 typedef struct {
-    const TokenVec* tokens;
+    const TokenVec *tokens;
     size_t pos;
-    const Token* current_token;
+    const Token *current_token;
     ParserError parser_error;
     AST ast;
 } Parser;
@@ -36,6 +36,6 @@ typedef struct {
     AST ast;
 } ParserResult;
 
-ParserResult parse_tokens(const TokenVec* tokens);
+ParserResult parse_tokens(const TokenVec *tokens);
 
 #endif

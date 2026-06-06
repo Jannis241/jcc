@@ -1,6 +1,7 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
+#include <math.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -56,6 +57,8 @@ static inline void advance(Parser *parser) {
     parser->pos += 1;
     parser->current_token = &parser->tokens->data[parser->pos];
 }
+
+
 
 static const char* parse_type(Parser *parser) {
     if (parser->current_token->kind == TOKEN_LBRACKET) {
@@ -620,9 +623,73 @@ static ASTExpr* parse_or(Parser *parser) {
     return lhs;
 }
 
+static bool is_valid_left_value(ASTExpr* expr) {
+    return (expr->kind == AST_EXPR_VARIABLE || expr->kind == AST_EXPR_FIELD_ACCESS);
+}
+
+static ASTExpr* parse_assignment(Parser *parser) {
+    ASTExpr* lhs = parse_or(parser);
+    if (lhs == NULL) return NULL;
+
+    BinOp op;
+
+    switch (parser->current_token->kind) {
+        case TOKEN_EQ:
+            if (!is_valid_left_value(lhs)) {
+                parser->parser_error = (ParserError) {.token_pos = parser->pos, .got = parser->current_token->kind, .status = PARSER_ERR_INVALID_ASSIGNMENT_TARGET};
+                return NULL;
+            }
+            advance(parser);
+
+            ASTExpr* value = parse_or(parser); 
+            if (value == NULL) return NULL;
+
+            ASTExpr* assign = malloc(sizeof(ASTExpr));
+
+            if (assign == NULL) {
+                printf("Malloc failed \n");
+                exit(-1);
+            }
+
+            *assign = (ASTExpr) {.kind =AST_EXPR_ASSIGN, .value.assign.value = value, .value.assign.target = lhs};
+            return assign;
+        case TOKEN_PLUSEQ:
+            op = BINOP_ADD;
+        break;
+        case TOKEN_MINUSEQ:
+            op = BINOP_SUB;
+        break;
+        case TOKEN_SLASHEQ:
+            op = BINOP_DIV;
+        break;
+        case TOKEN_STAREQ:
+            op = BINOP_MUL;
+        break;
+        default: 
+            return lhs;
+        break;
+    }
+    advance(parser);
+
+    ASTExpr* value = parse_or(parser); 
+    if (value == NULL) return NULL;
+
+    ASTExpr* assign = malloc(sizeof(ASTExpr));
+
+    if (assign == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    *assign = (ASTExpr) {.kind =AST_EXPR_BINARY_ASSIGN};
+    assign->value.bin_assign.value = value;
+    assign->value.bin_assign.op = op;
+    assign->value.bin_assign.target = lhs;
+    return assign;
+}
+
 static ASTExpr* parse_expr(Parser *parser) {
-    ASTExpr* node = parse_or(parser);
-    return node;
+    return parse_assignment(parser);
 }
 
 // -----------------------------
@@ -914,6 +981,7 @@ static ASTStmt* parse_let(Parser* parser) {
 
     return stmt;
 }
+
 static ASTStmt* parse_expr_stmt(Parser* parser) {
     ASTExpr* expr = parse_expr(parser);
     if (expr == NULL) return NULL;

@@ -54,6 +54,9 @@ typedef enum {
     AST_EXPR_POSTFIX,
     AST_EXPR_VARIABLE,
 
+    AST_EXPR_ASSIGN,
+    AST_EXPR_BINARY_ASSIGN,
+
     AST_EXPR_GROUPING,   
 } ASTExprKind;
 
@@ -76,8 +79,6 @@ typedef enum {
     AST_STMT_RETURN,
     AST_STMT_BREAK,
     AST_STMT_CONTINUE,
-    AST_STMT_ASSIGN,
-    AST_STMT_BINARY_ASSIGN,
 } ASTStmtKind;
 
 
@@ -215,6 +216,16 @@ typedef struct ASTExprPostfix {
     ASTExpr* value;
 } ASTExprPostfix;
 
+typedef struct ASTExprAssign {
+    ASTExpr* target;
+    ASTExpr* value;
+} ASTExprAssign;
+
+typedef struct ASTExprBinaryAssign {
+    ASTExpr* target;
+    BinOp op;
+    ASTExpr* value;
+} ASTExprBinaryAssign;
 
 struct ASTExpr{
     ASTExprKind kind;
@@ -225,6 +236,8 @@ struct ASTExpr{
         ASTExprBinary binary;
         ASTExprUnary unary;
         ASTExprCall call;
+        ASTExprAssign assign;
+        ASTExprBinaryAssign bin_assign;
         ASTExprFieldAccess field_access;
         ASTExprPostfix postfix;
         ASTExpr* grouping_inner;
