@@ -97,6 +97,16 @@ static const char *bin_op_name(BinOp op) {
         return "BINOP_GE";
     case BINOP_LE:
         return "BINOP_LE";
+    case BINOP_BITOR:
+        return "BINOP_BITOR";
+    case BINOP_BITXOR:
+        return "BINOP_BITXOR";
+    case BINOP_BITAND:
+        return "BINOP_BITAND";
+    case BINOP_BITSHIFTLEFT:
+        return "BINOP_BITSHIFTLEFT";
+    case BINOP_BITSHIFTRIGHT:
+        return "BINOP_BITSHIFTRIGHT";
     case BINOP_AND:
         return "BINOP_AND";
     case BINOP_OR:
