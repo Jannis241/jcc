@@ -1,6 +1,8 @@
 fn main() {
-    let a: int* = 3;
 
+    // pointer und dereferencing
+    let a: int* = 3;
     let b: int* = &a;
+    let c: int = a * *b;
 
 }

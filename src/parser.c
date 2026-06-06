@@ -190,12 +190,16 @@ static ASTExpr* parse_primary(Parser *parser) {
             *node = (ASTExpr){.kind = AST_EXPR_BOOL_LITERAL, .value.literal_value = parser->current_token->value};   
             advance(parser);
         break;
+        case TOKEN_STAR:
+            advance(parser);
+            ASTExpr* p = parse_primary(parser);
+            *node = (ASTExpr){.kind = AST_EXPR_DEREFERENCE_LITERAL, .value.literal_value = p->value.literal_value};   
+        break;
         case TOKEN_AMP:
             advance(parser);
             ASTExpr* primary = parse_primary(parser);
 
             *node = (ASTExpr){.kind = AST_EXPR_ADDR_LITERAL, .value.literal_value = primary->value.literal_value};   
-
         break;
         case TOKEN_IDENT:
             // ident { ==> struct
