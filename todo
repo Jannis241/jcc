@@ -1,19 +1,5 @@
-- if / else if / else nochmal finalisieren:
-    - Aktuell wird else if als Block mit einem einzelnen If-Statement modelliert.
-    - Entscheiden, ob das so bleiben soll oder ob der AST ein echtes else_stmt bekommt.
-
+- for schleife seperat parsen und ; explizit erwarten
+-  values[0] = x erlauben
 - Zeile und Spalte, nicht nur token index
-
 - Gemeinsame Funktion fuer comma-separated Listen => copy paste code
-
-- Warnings reduzieren:
-    - Shadowing in `parser.c` entfernen.
-    - Switch-Warnungen bewusst per `default` oder gezielten Comments behandeln.
-
-- Performance/Architektur spaeter:
-    - Arenas
-    - Debloaten
-    - Helper-Funktionen vereinfachen
-    - Zweiten Branch fuer groessere Umbauten machen
-    - In V1 darf geleakt werden, aber spaeter Arena oder CompilerContext nutzen.
-    - Token-/AST-Strings spaeter als Slices statt Kopien pruefen.
+- Warnings reduzieren

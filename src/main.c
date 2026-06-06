@@ -109,6 +109,9 @@ int main(int argc, char *argv[]) {
     case PARSER_ERR_UNEXPECTED_STMT_START:
         printf("PARSER_ERR_UNEXPECTED_STMT_START: got %s \n", token_kind_name(parser_result.error.got));
         return 1;
+    case PARSER_ERR_INVALID_ASSIGNMENT_TARGET:
+        printf("PARSER_ERR_INVALID_ASSIGNMENT_TARGET: got %s \n", token_kind_name(parser_result.error.got));
+        return 1;
     case PARSER_ERR_UNEXPECTED_TOP_LEVEL:
         printf("PARSER_ERR_UNEXPECTED_TOP_LEVEL: got %s \n", token_kind_name(parser_result.error.got));
         return 1;

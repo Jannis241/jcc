@@ -834,7 +834,7 @@ static ASTStmt* parse_for(Parser* parser) {
     if (init == NULL) return NULL;
     ASTExpr* cond = parse_expr(parser);
     if (cond == NULL) return NULL;
-    advance(parser);
+    MATCH_OR_NULL(TOKEN_SEMICOLON);
     ASTStmt* action = parse_statement(parser);
     if (action == NULL) return NULL;
 
