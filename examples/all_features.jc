@@ -1,3 +1,8 @@
+// Lexer: line comments are skipped.
+
+struct Empty {
+}
+
 struct Point {
     x: int,
     y: int,
@@ -8,6 +13,7 @@ struct Player {
     pos: Point,
     hp: int,
     inventory: [String],
+    path: [Point],
 }
 
 enum Color {
@@ -19,34 +25,58 @@ enum Color {
 enum Result {
     Ok,
     Err,
+    Unknown,
 }
 
 const answer: int = 42;
 const pi: float = 3.1415;
 const enabled: bool = true;
 const disabled: bool = false;
+const letter: char = 'j';
 const newline: char = '\n';
-const greeting: String = "hello\tjcc";
+const tab_char: char = '\t';
+const carriage_return: char = '\r';
+const slash_char: char = '\\';
+const quote_char: char = '\'';
+const double_quote_char: char = '\"';
+const tabbed: String = "hello\tjcc";
+const multiline: String = "line\nnext\rend";
+const quoted: String = "quote: \" slash: \\";
 
+const empty_numbers: [int] = [];
 const numbers: [int] = [1, 2, 3, 4];
+const nested_numbers: [[int]] = [[1, 2], [3, 4]];
+const empty_struct: Empty = Empty {};
 const origin: Point = Point { x: 0, y: 0 };
 const favorite: Color = Color::Green;
 
-const precedence: int = 1 + 2 * 3 - 4 / 2 % 2;
+const arithmetic: int = 1 + 2 * 3 - 4 / 2 % 2;
 const grouped: int = (1 + 2) * -(3 + 4);
-const logic: bool = !disabled && enabled || answer >= 40 && answer != 0;
+const comparisons: bool = answer < 100 && answer <= 42 && answer > 0 && answer >= 42;
+const equality: bool = answer == 42 && answer != 0;
+const logic: bool = !disabled && enabled || false;
+const unary_plus: int = +answer;
 const nested_call: int = parse("123", add(1, 2), numbers[0]);
-const field_and_index: int = spawn_player("Ada").inventory[0].len();
+const field_index_call: int = spawn_player("Ada").inventory[0].len();
 
 fn add(a: int, b: int) => int {
     return a + b;
 }
 
+fn first(values: [int]) => int {
+    return values[0];
+}
+
+fn make_numbers() => [int] {
+    return [1, 2, 3];
+}
+
 fn log_all() => void {
-    print("string", greeting);
-    print("char", newline);
+    print("string", tabbed, quoted);
+    print("char", letter, newline, tab_char, carriage_return, slash_char, quote_char, double_quote_char);
     print("bool", enabled, disabled);
     print("number", answer, pi);
+    print(multiline);
     return;
 }
 
@@ -69,6 +99,7 @@ fn spawn_player(name: String) => Player {
         pos: Point { x: 10, y: 20 },
         hp: 100,
         inventory: ["sword", "potion"],
+        path: [origin, Point { x: 1, y: 2 }],
     };
 }
 
@@ -99,22 +130,55 @@ fn loops(limit: int) => int {
         }
     }
 
-    for (let j: int = 0; j < 3 ; j++) {
+    for (let j: int = 0; j < 3; j++) {
         print("for", j);
     }
 
     return i;
 }
 
+fn assignments() => int {
+    let value: int = 10;
+    let player: Player = spawn_player("Grace");
+
+    value = value + 1;
+    value += 2;
+    value -= 3;
+    value *= 4;
+    value /= 2;
+
+    player.pos.x = value;
+    player.pos.y += 1;
+    player.hp -= 10;
+    player.hp *= 2;
+    player.hp /= 3;
+
+    return player.pos.x + player.pos.y + player.hp;
+}
+
+fn postfix_examples() => int {
+    let values: [int] = make_numbers();
+    let player: Player = spawn_player("Lin");
+    let first: int = values[0];
+    let chained: int = spawn_player("Chained").path[0].x;
+
+    first++;
+    first--;
+    print(player.name.len(), player.inventory[1], chained);
+
+    return first + chained;
+}
+
 fn main() => int {
     let player: Player = spawn_player("Ada");
     let result: Result = classify(answer);
     let total: int = distance_squared(origin, player.pos) + loops(10);
+    let score: int = assignments() + postfix_examples() + first(numbers);
 
     log_all();
 
-    if (result == Result::Ok && total > 0) {
-        print("ok", player.name, total);
+    if (result == Result::Ok && total > 0 || score != 0) {
+        print("ok", player.name, total, score);
         return 0;
     } else {
         print("error");

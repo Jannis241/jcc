@@ -13,6 +13,7 @@ fn main() => int{
     x += 3;
 
     vec.y += x / 3 + 32;
+    foo() + 1;
 }
 
 

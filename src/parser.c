@@ -1,7 +1,6 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
-#include <math.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -46,14 +45,29 @@ static bool expect(Parser *parser, TokenKind kind) {
 }
 
 static inline Token *peek(Parser *parser) {
+    if (parser->tokens->num_of_tokens <= parser->pos + 1) {
+        Token *t = malloc(sizeof(Token));
+        *t = (Token) {.kind = TOKEN_EOF, .value = "EOF"};
+        return t;
+    }
+
     return &parser->tokens->data[parser->pos + 1];
 }
 static inline Token *peek2(Parser *parser) {
+    if (parser->tokens->num_of_tokens <= parser->pos + 2) {
+        Token *t = malloc(sizeof(Token));
+        *t = (Token) {.kind = TOKEN_EOF, .value = "EOF"};
+        return t;
+    }
     return &parser->tokens->data[parser->pos + 2];
 }
 
 
 static inline void advance(Parser *parser) {
+    if (parser->tokens->num_of_tokens <= parser->pos + 1) {
+        parser->parser_error = (ParserError) {.got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_EOF};
+        return;
+    }
     parser->pos += 1;
     parser->current_token = &parser->tokens->data[parser->pos];
 }
@@ -669,6 +683,10 @@ static ASTExpr* parse_assignment(Parser *parser) {
             return lhs;
         break;
     }
+    if (!is_valid_left_value(lhs)) {
+        parser->parser_error = (ParserError) {.token_pos = parser->pos, .got = parser->current_token->kind, .status = PARSER_ERR_INVALID_ASSIGNMENT_TARGET};
+        return NULL;
+    }
     advance(parser);
 
     ASTExpr* value = parse_or(parser); 
@@ -767,6 +785,7 @@ static ASTStmt* parse_if(Parser* parser) {
     stmt->value.if_stmt.code_block = block;
     stmt->value.if_stmt.condition = cond;
     stmt->value.if_stmt.has_else = false;
+    stmt->value.if_stmt.else_stmt = NULL;
 
     if (parser->current_token->kind == TOKEN_ELSE) {
         advance(parser);
@@ -776,25 +795,32 @@ static ASTStmt* parse_if(Parser* parser) {
             ASTStmt* if_stmt = parse_if(parser);
             if (if_stmt == NULL) return NULL;
 
-            ASTStmtVec statements;
-            ASTStmtVec_init(&statements);
-            ASTStmtVec_push(&statements, if_stmt);
-
-            // eine block manuell erschaffen mit nur dem einzelnen if stmt drin
-            stmt->value.if_stmt.optional_else_block = (ASTStmtBlock) {.statements = statements}; 
+            stmt->value.if_stmt.else_stmt = if_stmt;
             stmt->value.if_stmt.has_else = true;
         }
         else {
             MATCH_OR_NULL(TOKEN_LBRACE);
 
-            ASTStmtBlock block = parse_block(parser);
+            ASTStmtBlock else_block = parse_block(parser);
             if (parser->parser_error.status != PARSER_OK) {
                 return NULL;
             }
 
             MATCH_OR_NULL(TOKEN_RBRACE);
+
+            ASTStmt *else_stmt = malloc(sizeof(ASTStmt));
+            if (else_stmt == NULL) {
+                printf("Malloc failed \n");
+                exit(-1);
+            }
+
+            *else_stmt = (ASTStmt) {
+                .kind = AST_STMT_BLOCK,
+                .value.block_stmt = else_block,
+            };
+
+            stmt->value.if_stmt.else_stmt = else_stmt;
             stmt->value.if_stmt.has_else = true;
-            stmt->value.if_stmt.optional_else_block = block;
         }
     }
 
@@ -1043,8 +1069,11 @@ static ASTStmtBlock parse_block(Parser* parser) {
     ASTStmtVec statements;
     ASTStmtVec_init(&statements);
 
-
     while (parser->current_token->kind != TOKEN_RBRACE) {
+        if (parser->current_token->kind == TOKEN_EOF) {
+            parser->parser_error = (ParserError) {.token_pos = parser->pos, .got = parser->current_token->kind, .status = PARSER_ERR_UNEXPECTED_EOF};
+            break; 
+        }
         if (current_is_statement(parser)) {
             ASTStmt* stmt = parse_statement(parser);
             if (stmt == NULL) break;
@@ -1055,6 +1084,7 @@ static ASTStmtBlock parse_block(Parser* parser) {
         }
         else {
             ASTStmt* expr_stmt = parse_expr_stmt(parser);
+            if (expr_stmt == NULL) break;
             if (!ASTStmtVec_push(&statements, expr_stmt)) {
                 printf("Pushing vec failed \n");
                 exit(-1);

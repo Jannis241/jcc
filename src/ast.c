@@ -389,9 +389,8 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
         print_line(indent + 2, "has_else: %s",
                    bool_name(stmt->value.if_stmt.has_else));
         if (stmt->value.if_stmt.has_else) {
-            print_line(indent + 2, "optional_else_block:");
-            print_stmt_block(&stmt->value.if_stmt.optional_else_block,
-                             indent + 4);
+            print_line(indent + 2, "else_stmt:");
+            print_stmt(stmt->value.if_stmt.else_stmt, indent + 4);
         }
         break;
     case AST_STMT_WHILE:

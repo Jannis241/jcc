@@ -107,7 +107,7 @@ typedef struct {
     ASTExpr* condition;
     ASTStmtBlock code_block;
     bool has_else; 
-    ASTStmtBlock optional_else_block;
+    ASTStmt *else_stmt;
 } ASTStmtIf;
 
 typedef struct {
