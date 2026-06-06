@@ -265,43 +265,122 @@ static void handle_char(Lexer* lexer){
 
 
 
-static void handle_number(Lexer* lexer) {
-    size_t len = 0;
-    size_t start = lexer->pos;
+static bool is_number_tail(char c) {
+    return isalnum((unsigned char)c) || c == '_';
+}
 
-
-    bool is_float = false; 
-
-    while (isdigit((unsigned char) lexer->current_char) || lexer->current_char == '.') {
-        if (lexer->current_char == '.') {
-            if (is_float) {
-                lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_FLOAT);
-                return;
-            }
-            is_float = true;
-        }
-        len += 1;
-        advance(lexer);
+static bool is_digit_for_base(char c, int base) {
+    if (isdigit((unsigned char)c)) {
+        return c - '0' < base;
     }
 
+    c = (char)tolower((unsigned char)c);
+    return base > 10 && c >= 'a' && c < 'a' + base - 10;
+}
 
+static void push_number_token(Lexer* lexer, TokenKind kind, size_t start) {
+    size_t len = lexer->pos - start;
     char* buffer = malloc(len + 1);
     if (buffer == NULL) {
         lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INTERNAL_PUSH_ERROR);
         return;
     }
 
-    memcpy(buffer, lexer->input+start, len);
+    memcpy(buffer, lexer->input + start, len);
     buffer[len] = '\0';
 
-
-    if (is_float) {
-       push_lexer_token(lexer, (Token) {.kind = TOKEN_FLOAT, .value = buffer});
-    }
-    else {
-        push_lexer_token(lexer, (Token) {.kind = TOKEN_INT, .value = buffer});
-    }
+    push_lexer_token(lexer, (Token) {.kind = kind, .value = buffer});
     free(buffer);
+}
+
+static bool handle_based_number(Lexer* lexer, size_t start) {
+    int base = 0;
+
+    switch (peek(lexer)) {
+        case 'b':
+        case 'B':
+            base = 2;
+            break;
+        case 'o':
+        case 'O':
+            base = 8;
+            break;
+        case 'x':
+        case 'X':
+            base = 16;
+            break;
+        default:
+            return false;
+    }
+
+    advance(lexer);
+    advance(lexer);
+
+    size_t digits = 0;
+    while (is_digit_for_base(lexer->current_char, base)) {
+        digits += 1;
+        advance(lexer);
+    }
+
+    if (digits == 0 || is_number_tail(lexer->current_char)) {
+        lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_NUMBER);
+        return true;
+    }
+
+    push_number_token(lexer, TOKEN_INT, start);
+    return true;
+}
+
+static void handle_number(Lexer* lexer) {
+    size_t start = lexer->pos;
+    bool is_float = false;
+
+    if (lexer->current_char == '0' && handle_based_number(lexer, start)) {
+        return;
+    }
+
+    while (isdigit((unsigned char) lexer->current_char)) {
+        advance(lexer);
+    }
+
+    if (lexer->current_char == '.') {
+        is_float = true;
+        advance(lexer);
+
+        while (isdigit((unsigned char) lexer->current_char)) {
+            advance(lexer);
+        }
+
+        if (lexer->current_char == '.') {
+            lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_FLOAT);
+            return;
+        }
+    }
+
+    if (lexer->current_char == 'e' || lexer->current_char == 'E') {
+        is_float = true;
+        advance(lexer);
+
+        if (lexer->current_char == '+' || lexer->current_char == '-') {
+            advance(lexer);
+        }
+
+        if (!isdigit((unsigned char)lexer->current_char)) {
+            lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_NUMBER);
+            return;
+        }
+
+        while (isdigit((unsigned char) lexer->current_char)) {
+            advance(lexer);
+        }
+    }
+
+    if (is_number_tail(lexer->current_char)) {
+        lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INVALID_NUMBER);
+        return;
+    }
+
+    push_number_token(lexer, is_float ? TOKEN_FLOAT : TOKEN_INT, start);
 }
 
 static void handle_string(Lexer* lexer) {

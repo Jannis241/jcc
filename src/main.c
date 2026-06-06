@@ -82,6 +82,12 @@ static void print_lexer_error(const char *path, const char *source,
     case LEXER_ERR_INVALID_FLOAT:
         printf("error: invalid float literal\n");
         break;
+    case LEXER_ERR_INVALID_NUMBER:
+        printf("error: invalid number literal\n");
+        break;
+    case LEXER_ERR_UNTERMINATED_BLOCKCOMMENT:
+        printf("error: unterminated block comment\n");
+        break;
     case LEXER_OK:
         return;
     }
