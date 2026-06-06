@@ -1,10 +1,13 @@
 
-fn main() => int{
-    let x: int = 1;
-    let y: int = 2;
-    let z = 3;
+struct Vec2 {
+    x: int,
+    y: int,
+}
 
-    let t: int = a = b = c;
+
+fn main() {
+    let mein_vector: Vec2 = Vec2 {x: 1, y: 3};
+}
 
 
 

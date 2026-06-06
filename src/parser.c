@@ -1163,10 +1163,13 @@ static bool parse_fn(Parser *parser) {
 
     MATCH_OR_FALSE(TOKEN_RPARENT);
 
-    MATCH_OR_FALSE(TOKEN_FATARROW);
+    const char* return_type = "void";
 
-    const char* return_type = parse_type(parser);
-    if (return_type == NULL) return false;
+    if (parser->current_token->kind == TOKEN_FATARROW)  {
+        advance(parser);
+         return_type = parse_type(parser);
+        if (return_type == NULL) return false;
+    }
 
 
     MATCH_OR_FALSE(TOKEN_LBRACE);
