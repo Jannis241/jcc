@@ -1,19 +1,10 @@
-struct Vec2 {
-    x: int,
-    y: int,
-}
 
 fn main() => int{
-    let x: int = 3;
-    x = 2;
+    let x: int = 1;
+    let y: int = 2;
+    let z: int = 3;
 
-    let vec: Vec2 = Vec2 {x: 1, y: 5};
-    vec.x = 67;
-
-    x += 3;
-
-    vec.y += x / 3 + 32;
-    foo() + 1;
+    let t: int = a = b = c;
 }
 
 

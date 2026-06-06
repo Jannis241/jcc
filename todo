@@ -1,5 +1,2 @@
-- for schleife seperat parsen und ; explizit erwarten
--  values[0] = x erlauben
 - Zeile und Spalte, nicht nur token index
-- Gemeinsame Funktion fuer comma-separated Listen => copy paste code
 - Warnings reduzieren

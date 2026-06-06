@@ -224,9 +224,9 @@ static ASTExpr* parse_primary(Parser *parser) {
 
                 while(parser->current_token->kind == TOKEN_COMMA) {
                     advance (parser);
-                    ASTExpr* element = parse_expr(parser);
-                    if (element == NULL) return NULL;
-                    ASTExprVec_push(&elements, element);
+                    ASTExpr* e = parse_expr(parser);
+                    if (e == NULL) return NULL;
+                    ASTExprVec_push(&elements, e);
                 }
             }
             MATCH_OR_NULL(TOKEN_RBRACKET);
@@ -254,9 +254,9 @@ static ASTExpr* finish_call(Parser *parser, ASTExpr* callee) {
 
         while (parser->current_token->kind == TOKEN_COMMA) {
             advance(parser);
-            ASTExpr* expr = parse_expr(parser);
-            if (expr == NULL) return NULL;
-            if (!ASTExprVec_push(&args, expr)) {
+            ASTExpr* e = parse_expr(parser);
+            if (e == NULL) return NULL;
+            if (!ASTExprVec_push(&args, e)) {
                 printf("Pushing ast expr vec failed.. \n");
                 exit(-1);
             };
@@ -638,6 +638,10 @@ static ASTExpr* parse_or(Parser *parser) {
 }
 
 static bool is_valid_left_value(ASTExpr* expr) {
+    if (expr->kind == AST_EXPR_POSTFIX && expr->value.postfix.op == POSTFIX_OP_BRACKETS) {
+        // arr[0] = 3; erlauben
+        return true;
+    }
     return (expr->kind == AST_EXPR_VARIABLE || expr->kind == AST_EXPR_FIELD_ACCESS);
 }
 
@@ -655,7 +659,9 @@ static ASTExpr* parse_assignment(Parser *parser) {
             }
             advance(parser);
 
-            ASTExpr* value = parse_or(parser); 
+            // nochmal assignment parsen, damit man zb machen kann:
+            // a = b = c;
+            ASTExpr* value = parse_assignment(parser); 
             if (value == NULL) return NULL;
 
             ASTExpr* assign = malloc(sizeof(ASTExpr));
@@ -689,7 +695,7 @@ static ASTExpr* parse_assignment(Parser *parser) {
     }
     advance(parser);
 
-    ASTExpr* value = parse_or(parser); 
+    ASTExpr* value = parse_assignment(parser); 
     if (value == NULL) return NULL;
 
     ASTExpr* assign = malloc(sizeof(ASTExpr));
