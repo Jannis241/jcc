@@ -19,6 +19,7 @@ typedef enum {
 typedef struct {
     ParserStatus status;
     size_t token_pos;
+    SourceSpan span;
     TokenKind expected;
     TokenKind got;
 } ParserError;

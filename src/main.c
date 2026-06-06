@@ -11,6 +11,119 @@ static void print_out_token(Token *token) {
            token->value);
 }
 
+static void print_spaces(size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        putchar(' ');
+    }
+}
+
+static size_t digit_count(size_t value) {
+    size_t digits = 1;
+
+    while (value >= 10) {
+        value /= 10;
+        digits += 1;
+    }
+
+    return digits;
+}
+
+static void print_source_line(const char *path, const char *source,
+                              SourceSpan span) {
+    if (span.line == 0 || span.column == 0) {
+        return;
+    }
+
+    size_t line_start = span.start;
+    while (line_start > 0 && source[line_start - 1] != '\n') {
+        line_start -= 1;
+    }
+
+    size_t line_end = span.start;
+    while (source[line_end] && source[line_end] != '\n') {
+        line_end += 1;
+    }
+
+    size_t line_digits = digit_count(span.line);
+
+    printf(" --> %s:%zu:%zu\n", path, span.line, span.column);
+    print_spaces(line_digits);
+    printf(" |\n");
+    printf("%zu | ", span.line);
+    fwrite(source + line_start, 1, line_end - line_start, stdout);
+    putchar('\n');
+    print_spaces(line_digits);
+    printf(" | ");
+    print_spaces(span.column - 1);
+    printf("^\n");
+}
+
+static void print_lexer_error(const char *path, const char *source,
+                              LexError error) {
+    switch (error.status) {
+    case LEXER_ERR_INTERNAL_PUSH_ERROR:
+        printf("error: internal lexer error\n");
+        break;
+    case LEXER_ERR_INVALID_CHARACTER:
+        printf("error: invalid character '%c'\n", error.character);
+        break;
+    case LEXER_ERR_UNEXPECTED_EOF:
+        printf("error: unexpected end of file\n");
+        break;
+    case LEXER_ERR_INVALID_CHAR_LITERAL_SPAN:
+        printf("error: invalid char literal\n");
+        break;
+    case LEXER_ERR_UNTERMINATED_STRING:
+        printf("error: unterminated string literal\n");
+        break;
+    case LEXER_ERR_UNTERMINATED_CHAR:
+        printf("error: unterminated char literal\n");
+        break;
+    case LEXER_ERR_INVALID_FLOAT:
+        printf("error: invalid float literal\n");
+        break;
+    case LEXER_OK:
+        return;
+    }
+
+    print_source_line(path, source, error.span);
+}
+
+static void print_parser_error(const char *path, const char *source,
+                               ParserError error) {
+    switch (error.status) {
+    case PARSER_ERR_UNEXPECTED_TOP_LEVEL:
+        printf("error: unexpected top-level token %s\n",
+               token_kind_name(error.got));
+        break;
+    case PARSER_ERR_UNEXPECTED_EOF:
+        printf("error: unexpected end of file\n");
+        break;
+    case PARSER_ERR_UNEXPECTED_TOKEN:
+        printf("error: expected %s, got %s\n",
+               token_kind_name(error.expected), token_kind_name(error.got));
+        break;
+    case PARSER_ERR_UNEXPECTED_EXPR_START:
+        printf("error: expected expression, got %s\n",
+               token_kind_name(error.got));
+        break;
+    case PARSER_ERR_INVALID_CHAR_LITERAL:
+        printf("error: invalid char literal\n");
+        break;
+    case PARSER_ERR_UNEXPECTED_STMT_START:
+        printf("error: expected statement, got %s\n",
+               token_kind_name(error.got));
+        break;
+    case PARSER_ERR_INVALID_ASSIGNMENT_TARGET:
+        printf("error: invalid assignment target\n");
+        break;
+    case PARSER_OK:
+        return;
+    }
+
+    print_source_line(path, source, error.span);
+}
+
 static char *read_file(const char *path) {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
@@ -52,35 +165,11 @@ int main(int argc, char *argv[]) {
 
     LexResult token_res = generate_tokens(source);
 
-
-    switch (token_res.error.status) {
-    case LEXER_OK:
-        printf("[LEXER SUCCESS]\n");
-        break;
-    case LEXER_ERR_INTERNAL_PUSH_ERROR:
-        printf("ERR_INTERNAL_PUSH_ERROR \n");
-        return 1;
-    case LEXER_ERR_INVALID_CHARACTER:
-        printf("INVALID_CHARACTER: '%c' at pos: '%zu' \n",
-               token_res.error.character, token_res.error.pos);
-        return 1;
-    case LEXER_ERR_INVALID_FLOAT:
-        printf("LEXER_ERR_INVALID_FLOAT \n");
-        return 1;
-    case LEXER_ERR_UNEXPECTED_EOF:
-        printf("UNEXPECTED_EOF \n");
-        return 1;
-    case LEXER_ERR_UNTERMINATED_CHAR:
-        printf("UNTERMINATED_CHAR \n");
-        return 1;
-    case LEXER_ERR_INVALID_CHAR_LITERAL_SPAN: {
-        printf("INVALID_CHAR_LITERAL_SPAN");
+    if (token_res.error.status != LEXER_OK) {
+        print_lexer_error(argv[1], source, token_res.error);
         return 1;
     }
-    case LEXER_ERR_UNTERMINATED_STRING:
-        printf("UNTERMINATED_STRING \n");
-        return 1;
-    }
+    printf("[LEXER SUCCESS]\n");
 
     if (token_res.tokens.num_of_tokens == 0) {
         return 0;
@@ -93,32 +182,11 @@ int main(int argc, char *argv[]) {
 
     ParserResult parser_result = parse_tokens(&token_res.tokens);
 
-    switch (parser_result.error.status) {
-    case PARSER_OK:
-        printf("[PARSER SUCCESS]\n");
-        break;
-    case PARSER_ERR_UNEXPECTED_EXPR_START:
-        printf("PARSER_ERR_UNEXPECTED_EXPR_START  got: %s, pos: %zu \n",token_kind_name(parser_result.error.got), parser_result.error.token_pos);
-        return 1;
-    case PARSER_ERR_INVALID_CHAR_LITERAL:
-        printf("PARSER_ERR_INVALID_CHAR_LITERAL \n");
-        return 1;
-    case PARSER_ERR_UNEXPECTED_TOKEN:
-        printf("PARSER_ERR_UNEXPECTED_TOKEN: expected: %s, got: %s, pos: %zu \n", token_kind_name(parser_result.error.expected),token_kind_name(parser_result.error.got), parser_result.error.token_pos);
-        return 1;
-    case PARSER_ERR_UNEXPECTED_STMT_START:
-        printf("PARSER_ERR_UNEXPECTED_STMT_START: got %s \n", token_kind_name(parser_result.error.got));
-        return 1;
-    case PARSER_ERR_INVALID_ASSIGNMENT_TARGET:
-        printf("PARSER_ERR_INVALID_ASSIGNMENT_TARGET: got %s \n", token_kind_name(parser_result.error.got));
-        return 1;
-    case PARSER_ERR_UNEXPECTED_TOP_LEVEL:
-        printf("PARSER_ERR_UNEXPECTED_TOP_LEVEL: got %s \n", token_kind_name(parser_result.error.got));
-        return 1;
-    case PARSER_ERR_UNEXPECTED_EOF:
-        printf("PARSER_ERR_UNEXPECTED_EOF\n");
+    if (parser_result.error.status != PARSER_OK) {
+        print_parser_error(argv[1], source, parser_result.error);
         return 1;
     }
+    printf("[PARSER SUCCESS]\n");
 
     print_ast(&parser_result.ast);
 }

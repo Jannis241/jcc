@@ -2,9 +2,9 @@
 fn main() => int{
     let x: int = 1;
     let y: int = 2;
-    let z: int = 3;
+    let z = 3;
 
     let t: int = a = b = c;
-}
+
 
 

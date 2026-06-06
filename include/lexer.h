@@ -70,8 +70,16 @@ typedef enum {
 } TokenKind;
 
 typedef struct {
+    size_t start;
+    size_t end;
+    size_t line;
+    size_t column;
+} SourceSpan;
+
+typedef struct {
     TokenKind kind;
     const char *value;
+    SourceSpan span;
 } Token;
 
 typedef struct {
@@ -94,6 +102,7 @@ typedef enum {
 typedef struct {
     LexStatus status;
     size_t pos;
+    SourceSpan span;
     char character;
 } LexError;
 
@@ -104,6 +113,11 @@ typedef struct {
 
 typedef struct {
     size_t pos;
+    size_t line;
+    size_t column;
+    size_t token_start_pos;
+    size_t token_start_line;
+    size_t token_start_column;
     char current_char;
     const char *input;
     size_t input_len;

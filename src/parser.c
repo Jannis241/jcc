@@ -36,9 +36,21 @@ static ASTExpr* parse_expr(Parser* parser);
 static ASTStmtBlock parse_block(Parser* parser);
 static ASTStmt* parse_statement(Parser* parser);
 
+static ParserError make_parser_error(Parser *parser, ParserStatus status,
+                                     TokenKind expected) {
+    return (ParserError) {
+        .status = status,
+        .token_pos = parser->pos,
+        .span = parser->current_token->span,
+        .expected = expected,
+        .got = parser->current_token->kind,
+    };
+}
+
 static bool expect(Parser *parser, TokenKind kind) {
     if (parser->current_token->kind != kind) {
-        parser->parser_error = (ParserError) {.expected = kind, .got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_TOKEN};
+        parser->parser_error =
+            make_parser_error(parser, PARSER_ERR_UNEXPECTED_TOKEN, kind);
         return false;
     }
     return true;
@@ -65,7 +77,8 @@ static inline Token *peek2(Parser *parser) {
 
 static inline void advance(Parser *parser) {
     if (parser->tokens->num_of_tokens <= parser->pos + 1) {
-        parser->parser_error = (ParserError) {.got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_EOF};
+        parser->parser_error =
+            make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_EOF);
         return;
     }
     parser->pos += 1;
@@ -234,7 +247,9 @@ static ASTExpr* parse_primary(Parser *parser) {
 
         break;
         default: 
-            parser->parser_error = (ParserError){.got = parser->current_token->kind, .token_pos = parser->pos, .status = PARSER_ERR_UNEXPECTED_EXPR_START} ;
+            parser->parser_error =
+                make_parser_error(parser, PARSER_ERR_UNEXPECTED_EXPR_START,
+                                  TOKEN_EOF);
             return NULL;
     }
 
@@ -654,7 +669,8 @@ static ASTExpr* parse_assignment(Parser *parser) {
     switch (parser->current_token->kind) {
         case TOKEN_EQ:
             if (!is_valid_left_value(lhs)) {
-                parser->parser_error = (ParserError) {.token_pos = parser->pos, .got = parser->current_token->kind, .status = PARSER_ERR_INVALID_ASSIGNMENT_TARGET};
+                parser->parser_error = make_parser_error(
+                    parser, PARSER_ERR_INVALID_ASSIGNMENT_TARGET, TOKEN_EOF);
                 return NULL;
             }
             advance(parser);
@@ -690,7 +706,8 @@ static ASTExpr* parse_assignment(Parser *parser) {
         break;
     }
     if (!is_valid_left_value(lhs)) {
-        parser->parser_error = (ParserError) {.token_pos = parser->pos, .got = parser->current_token->kind, .status = PARSER_ERR_INVALID_ASSIGNMENT_TARGET};
+        parser->parser_error = make_parser_error(
+            parser, PARSER_ERR_INVALID_ASSIGNMENT_TARGET, TOKEN_EOF);
         return NULL;
     }
     advance(parser);
@@ -1077,7 +1094,8 @@ static ASTStmtBlock parse_block(Parser* parser) {
 
     while (parser->current_token->kind != TOKEN_RBRACE) {
         if (parser->current_token->kind == TOKEN_EOF) {
-            parser->parser_error = (ParserError) {.token_pos = parser->pos, .got = parser->current_token->kind, .status = PARSER_ERR_UNEXPECTED_EOF};
+            parser->parser_error =
+                make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_EOF);
             break; 
         }
         if (current_is_statement(parser)) {
@@ -1324,7 +1342,11 @@ ParserResult parse_tokens(const TokenVec* tokens) {
                 }
             break;
             default:
-                return (ParserResult) {.ast = parser.ast, .error = {.token_pos = parser.pos, .status = PARSER_ERR_UNEXPECTED_TOP_LEVEL, .got = parser.current_token->kind}};
+                return (ParserResult) {
+                    .ast = parser.ast,
+                    .error = make_parser_error(
+                        &parser, PARSER_ERR_UNEXPECTED_TOP_LEVEL, TOKEN_EOF),
+                };
             break;
         }
     }

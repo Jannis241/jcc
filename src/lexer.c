@@ -90,6 +90,12 @@ static char* copy_token_value(const char* value) {
 static LexError gen_lexerror(Lexer *lexer, LexStatus status) {
     return (LexError){
         .pos = lexer->pos,
+        .span = {
+            .start = lexer->pos,
+            .end = lexer->pos + 1,
+            .line = lexer->line,
+            .column = lexer->column,
+        },
         .character = lexer->current_char,
         .status = status,
     };
@@ -132,6 +138,19 @@ static int push_token(TokenVec* vec, Token* token) {
 }
 
 static void push_lexer_token(Lexer* lexer, Token token) {
+    if (token.span.line == 0) {
+        token.span = (SourceSpan) {
+            .start = lexer->token_start_pos,
+            .end = lexer->pos,
+            .line = lexer->token_start_line,
+            .column = lexer->token_start_column,
+        };
+
+        if (token.span.end <= token.span.start) {
+            token.span.end = token.span.start + 1;
+        }
+    }
+
     if (push_token(&lexer->tokens, &token) != 0) {
         lexer->err_status = gen_lexerror(lexer, LEXER_ERR_INTERNAL_PUSH_ERROR);
     }
@@ -145,6 +164,14 @@ static char peek(Lexer* lexer) {
 }
 
 static void advance(Lexer* lexer) {
+    if (lexer->current_char == '\n') {
+        lexer->line += 1;
+        lexer->column = 1;
+    }
+    else {
+        lexer->column += 1;
+    }
+
     lexer->pos += 1;
     lexer->current_char = lexer->input[lexer->pos];
 }
@@ -530,6 +557,10 @@ static void generate_next_token(Lexer* lexer) {
         return;
     }
 
+    lexer->token_start_pos = lexer->pos;
+    lexer->token_start_line = lexer->line;
+    lexer->token_start_column = lexer->column;
+
     switch (lexer->current_char)  {
         case ',':
             push_lexer_token(lexer, (Token) {.kind=TOKEN_COMMA, .value = ","});
@@ -624,7 +655,18 @@ static void generate_next_token(Lexer* lexer) {
 }
 
 LexResult generate_tokens(const char* str_input) {
-    Lexer lexer = {.pos = 0, .current_char = *str_input, .input = str_input, .tokens = create_token_Vec(), .input_len = strlen(str_input)};
+    Lexer lexer = {
+        .pos = 0,
+        .line = 1,
+        .column = 1,
+        .token_start_pos = 0,
+        .token_start_line = 1,
+        .token_start_column = 1,
+        .current_char = *str_input,
+        .input = str_input,
+        .tokens = create_token_Vec(),
+        .input_len = strlen(str_input),
+    };
     lexer.err_status = gen_lexerror(&lexer, LEXER_OK);
 
     while (lexer.current_char) {
@@ -637,6 +679,9 @@ LexResult generate_tokens(const char* str_input) {
         }
     }
 
+    lexer.token_start_pos = lexer.pos;
+    lexer.token_start_line = lexer.line;
+    lexer.token_start_column = lexer.column;
     push_lexer_token(&lexer, (Token) {.kind=TOKEN_EOF, .value = "EOF"});
 
     return (LexResult) {.tokens = lexer.tokens, .error = lexer.err_status};
