@@ -378,6 +378,29 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
     }
 }
 
+static void print_match_cases(const ASTStmtMatchCaseVec *cases,
+                              size_t indent) {
+    if (cases->len > 0 && cases->data == NULL) {
+        print_line(indent, "(invalid vector: len=%zu, data=null)", cases->len);
+        return;
+    }
+
+    for (size_t i = 0; i < cases->len; i++) {
+        ASTStmtMatchCase *match_case = cases->data[i];
+
+        print_line(indent, "[%zu]", i);
+        if (match_case == NULL) {
+            print_line(indent + 2, "(null)");
+            continue;
+        }
+
+        print_line(indent + 2, "expr:");
+        print_expr(match_case->expr, indent + 4);
+        print_line(indent + 2, "block:");
+        print_stmt_block(&match_case->block, indent + 4);
+    }
+}
+
 static void print_stmt(const ASTStmt *stmt, size_t indent) {
     if (stmt == NULL) {
         print_line(indent, "Stmt: (null)");
@@ -455,6 +478,11 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
                            stmt->value.type_stmt.type_name);
         break;
     case AST_STMT_MATCH:
+        print_line(indent + 2, "expr:");
+        print_expr(stmt->value.match_stmt.expr, indent + 4);
+        print_line(indent + 2, "cases: %zu",
+                   stmt->value.match_stmt.cases.len);
+        print_match_cases(&stmt->value.match_stmt.cases, indent + 4);
         break;
     case AST_STMT_BREAK:
     case AST_STMT_CONTINUE:

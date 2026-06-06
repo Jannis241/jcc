@@ -168,6 +168,12 @@ static ASTExpr* parse_primary(Parser *parser) {
                         advance(parser);
                         break;
                     }
+                    if (parser->current_token->kind == TOKEN_EOF) {
+                        parser->parser_error =
+                            make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_RBRACE);
+                        return NULL;
+                    }
+
                     if (!expect(parser, TOKEN_IDENT)) return NULL;
                     const char* field_name = parser->current_token->value;
                     advance(parser);
@@ -298,6 +304,7 @@ static ASTExpr* parse_postfix(Parser *parser) {
     ASTExpr* expr = parse_primary(parser);
     if (expr == NULL) return NULL;
 
+    // ist safe
     while (1) {
         // <expr>(
         if (parser->current_token->kind == TOKEN_LPARENT) {
@@ -538,6 +545,7 @@ static ASTExpr* parse_bitshift(Parser *parser) {
         return NULL;
     }
 
+    // ist safe
     while (1) {
 
         BinOp op;
@@ -1230,7 +1238,59 @@ static ASTStmt* parse_type_stmt(Parser* parser) {
 static ASTStmt* parse_match(Parser* parser) {
     MATCH_OR_NULL(TOKEN_MATCH);
 
-    return NULL;
+    MATCH_OR_NULL(TOKEN_LPARENT);
+
+    ASTExpr* comparison_expr = parse_expr(parser);
+    if (comparison_expr == NULL) return NULL;
+
+    MATCH_OR_NULL(TOKEN_RPARENT);
+    MATCH_OR_NULL(TOKEN_LBRACE);
+
+    ASTStmtMatchCaseVec cases;
+    ASTStmtMatchCaseVec_init(&cases);
+
+    while (parser->current_token->kind != TOKEN_RBRACE) {
+        if (parser->current_token->kind == TOKEN_EOF) {
+            parser->parser_error =
+                make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_RBRACE);
+            return NULL;
+        }
+
+        ASTExpr* case_expr = parse_expr(parser);
+        if (case_expr == NULL) return NULL;
+
+        MATCH_OR_NULL(TOKEN_FATARROW);
+        MATCH_OR_NULL(TOKEN_LBRACE);
+
+        ASTStmtBlock block = parse_block(parser);
+        if (parser->parser_error.status != PARSER_OK) {
+            return NULL;
+        }
+
+        ASTStmtMatchCase *c = malloc(sizeof(ASTStmtMatchCase));
+
+        *c = (ASTStmtMatchCase) {.expr = case_expr, .block = block};
+
+        ASTStmtMatchCaseVec_push(&cases, c);
+
+        MATCH_OR_NULL(TOKEN_RBRACE);
+
+    }
+
+    MATCH_OR_NULL(TOKEN_RBRACE);
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+
+    if (stmt == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    stmt->kind = AST_STMT_MATCH;
+    stmt->value.match_stmt.expr = comparison_expr;
+    stmt->value.match_stmt.cases = cases;
+
+    return stmt;
 }
 
 static ASTStmt* parse_const_stmt(Parser* parser) {

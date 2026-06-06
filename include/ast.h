@@ -157,6 +157,15 @@ typedef struct {
 } ASTStmtConst;
 
 typedef struct {
+    ASTExpr* expr;
+    ASTStmtBlock block;
+} ASTStmtMatchCase;
+
+VECTOR_DEFINE(ASTStmtMatchCase*, ASTStmtMatchCaseVec);
+
+typedef struct {
+    ASTExpr* expr;
+    ASTStmtMatchCaseVec cases;
 } ASTStmtMatch;
 
 typedef struct {

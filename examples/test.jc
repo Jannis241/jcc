@@ -1,9 +1,10 @@
-type Zahlen = [int];
-
 fn main() {
-    let x: Zahlen = [1,2,3];
-
-    type Namen = [String];
-
-    const t: int = 3;
+    match (3+3) {
+        6 => {
+            print("es war 6");
+        }
+        3 => {
+            print("es war 3");
+        }
+    }
 }
