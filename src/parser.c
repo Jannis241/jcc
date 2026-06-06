@@ -386,7 +386,6 @@ static ASTExpr* parse_postfix(Parser *parser) {
     return expr;
 }
 
-
 static ASTExpr* parse_unary(Parser *parser) {
     if (parser->current_token->kind == TOKEN_PLUS) {
         // 3 - +3 => + ist egal
@@ -408,7 +407,7 @@ static ASTExpr* parse_unary(Parser *parser) {
 
     advance(parser);
 
-    ASTExpr* value = parse_unary(parser);
+    ASTExpr* value = parse_postfix(parser);
 
     if (value == NULL) return NULL;
 
@@ -425,8 +424,38 @@ static ASTExpr* parse_unary(Parser *parser) {
 
     return unary_expr;
 }
+
+static ASTExpr* parse_cast(Parser *parser) {
+      ASTExpr *expr = parse_unary(parser);
+
+      while (parser->current_token->kind == TOKEN_AS) {
+          advance(parser);
+          if (!expect(parser, TOKEN_IDENT)) return NULL;
+
+          const char *type = parser->current_token->value;
+
+        advance(parser);
+        
+
+          ASTExpr *cast = malloc(sizeof(ASTExpr));
+          *cast = (ASTExpr){
+              .kind = AST_EXPR_CAST,
+              .value.cast = {
+                  .expr = expr,
+                  .type = type,
+              },
+          };
+
+          expr = cast;
+      }
+
+      return expr;
+  }
+
+
+
 static ASTExpr* parse_multiplacative(Parser *parser) {
-    ASTExpr *lhs = parse_unary(parser);
+    ASTExpr *lhs = parse_cast(parser);
 
     if (lhs == NULL) {
         return NULL;
@@ -445,7 +474,7 @@ static ASTExpr* parse_multiplacative(Parser *parser) {
         }
         advance(parser);
 
-        ASTExpr *rhs = parse_unary(parser);
+        ASTExpr *rhs = parse_cast(parser);
 
         if (rhs == NULL) {
             return NULL;
@@ -1174,67 +1203,35 @@ static ASTStmt* parse_expr_stmt(Parser* parser) {
     return stmt;
 }
 static ASTStmt* parse_type_stmt(Parser* parser) {
-    MATCH_OR_NULL(TOKEN_LET);
-
-    if (!expect(parser, TOKEN_IDENT)) return NULL;
-    const char* name = parser->current_token->value;
-    advance(parser);
-
-    // irgendwas was kein normaler type sein kann für später
-    const char* type = "|type_inference|"; 
-    if (parser->current_token->kind == TOKEN_COLON) {
-        // explicit type
-        advance(parser);
-        // parse type handelt selber die errors und advanced selber
-        type = parse_type(parser);
-        if (type == NULL) return NULL;
-    }
-
-    MATCH_OR_NULL(TOKEN_EQ);
-
-    ASTExpr* value = parse_expr(parser);
-    if (value == NULL)  return NULL;
-
-    MATCH_OR_NULL(TOKEN_SEMICOLON);
-
-    ASTStmt* stmt = malloc(sizeof(ASTStmt));
-
-    if (stmt == NULL) {
-        printf("Malloc failed \n");
-        exit(-1);
-    }
-
-    stmt->kind = AST_STMT_LET;
-    stmt->value.let_stmt.value = value;
-    stmt->value.let_stmt.var_name = name;
-    stmt->value.let_stmt.var_type = type;
-
-    return stmt;
+    // TODO
+    return NULL;
 }
 
 static ASTStmt* parse_match(Parser* parser) {
-    MATCH_OR_NULL(TOKEN_LET);
+    // TODO
+    return NULL;
+}
 
-    if (!expect(parser, TOKEN_IDENT)) return NULL;
+static ASTStmt* parse_const_stmt(Parser* parser) {
+    MATCH_OR_NULL(TOKEN_CONST);
+
     const char* name = parser->current_token->value;
-    advance(parser);
 
-    // irgendwas was kein normaler type sein kann für später
-    const char* type = "|type_inference|"; 
-    if (parser->current_token->kind == TOKEN_COLON) {
-        // explicit type
-        advance(parser);
-        // parse type handelt selber die errors und advanced selber
-        type = parse_type(parser);
-        if (type == NULL) return NULL;
-    }
+    MATCH_OR_NULL(TOKEN_IDENT);
+    MATCH_OR_NULL(TOKEN_COLON);
 
+    const char* t = parser->current_token->value;
+
+    MATCH_OR_NULL(TOKEN_IDENT);
     MATCH_OR_NULL(TOKEN_EQ);
 
     ASTExpr* value = parse_expr(parser);
-    if (value == NULL)  return NULL;
 
-    MATCH_OR_NULL(TOKEN_SEMICOLON);
+    if (value == NULL) {
+        return NULL;
+    }
+
+    MATCH_OR_FALSE(TOKEN_SEMICOLON);
 
     ASTStmt* stmt = malloc(sizeof(ASTStmt));
 
@@ -1243,16 +1240,18 @@ static ASTStmt* parse_match(Parser* parser) {
         exit(-1);
     }
 
-    stmt->kind = AST_STMT_LET;
-    stmt->value.let_stmt.value = value;
-    stmt->value.let_stmt.var_name = name;
-    stmt->value.let_stmt.var_type = type;
+    stmt->kind = AST_STMT_CONST;
+    stmt->value.const_stmt.name = name;
+    stmt->value.const_stmt.type = t;
+    stmt->value.const_stmt.value = value;
 
     return stmt;
 }
 
 static ASTStmt* parse_statement(Parser* parser) {
     switch (parser->current_token->kind) {
+        case TOKEN_CONST:
+            return parse_const_stmt(parser);
         case TOKEN_TYPE:
             return parse_type_stmt(parser);
         case TOKEN_MATCH:
@@ -1288,8 +1287,8 @@ static ASTStmt* parse_statement(Parser* parser) {
 
 
 static bool current_is_statement_start(Parser *parser) {
-    TokenKind stmt_kinds[] = {TOKEN_LET, TOKEN_IF, TOKEN_WHILE, TOKEN_FOR, TOKEN_BREAK, TOKEN_CONTINUE, TOKEN_RETURN, TOKEN_LBRACE, TOKEN_MATCH, TOKEN_TYPE};
-    return contains_tokenkind(parser->current_token->kind, stmt_kinds, 10); 
+    TokenKind stmt_kinds[11] = {TOKEN_LET, TOKEN_IF, TOKEN_WHILE, TOKEN_FOR, TOKEN_BREAK, TOKEN_CONTINUE, TOKEN_RETURN, TOKEN_LBRACE, TOKEN_MATCH, TOKEN_TYPE, TOKEN_CONST};
+    return contains_tokenkind(parser->current_token->kind, stmt_kinds, 11); 
 }
 
 static ASTStmtBlock parse_block(Parser* parser) {
@@ -1499,6 +1498,12 @@ static bool parse_enum(Parser *parser) {
         exit(-1);
     }
     return true;
+
+}
+
+static bool parse_type_stmt_top_level(Parser *parser) {
+    // TODO
+    return false;
 }
 
 ParserResult parse_tokens(const TokenVec* tokens) {
@@ -1529,9 +1534,6 @@ ParserResult parse_tokens(const TokenVec* tokens) {
             break;
             case TOKEN_CONST:
                 advance(&parser);
-
-                // parse const returnt ob alles gut gelaufen ist oder nicht,
-                // falls false => error wurde in parser.parser_error geschrieben
                 if (!parse_const(&parser)) {
                     return (ParserResult) {.ast = parser.ast, .error = parser.parser_error};
                 }
@@ -1539,6 +1541,12 @@ ParserResult parse_tokens(const TokenVec* tokens) {
             case TOKEN_STRUCT:
                 advance(&parser);
                 if (!parse_struct(&parser)) {
+                    return (ParserResult) {.ast = parser.ast, .error = parser.parser_error};
+                }
+            break;
+            case TOKEN_TYPE:
+                advance(&parser);
+                if (!parse_type_stmt_top_level(&parser)) {
                     return (ParserResult) {.ast = parser.ast, .error = parser.parser_error};
                 }
             break;

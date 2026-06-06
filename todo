@@ -1,3 +1,7 @@
+- const auch in functions erlauben (keine type inference dort)
+- type aliasing als top level
+- type aliasing in functions
 - match statements parsen
-- type casting mit as parsen
-- type aliases parsen
+
+- errors besser machen (die sind eine line zu spät)
+- lex support für andere bases machen (0x);

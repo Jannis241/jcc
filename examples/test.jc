@@ -1,18 +1,7 @@
+type Zahlen = [int];
+
 fn main() {
-    /* das 
-    hier ist ein
-    cooler block comment!
-    */
+    let x: Zahlen = [1,2,3];
 
-    let x: int = 3;
-
-
-    let t = 5 << 3;
-    let t = 1 >> 3;
-    let t = a | 1;
-    let t = a & 1;
-    let t = a & 1 | 3 << 5 >> 5 ;
-
-    let z = 5;
-
+    const t: int = 3;
 }

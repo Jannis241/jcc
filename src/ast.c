@@ -161,6 +161,8 @@ static const char *expr_kind_name(ASTExprKind kind) {
         return "AST_EXPR_ASSIGN";
     case AST_EXPR_BINARY_ASSIGN:
         return "AST_EXPR_BINARY_ASSIGN";
+    case AST_EXPR_CAST:
+        return "AST_EXPR_CAST";
     case AST_EXPR_GROUPING:
         return "AST_EXPR_GROUPING";
     }
@@ -190,6 +192,12 @@ static const char *stmt_kind_name(ASTStmtKind kind) {
         return "AST_STMT_BREAK";
     case AST_STMT_CONTINUE:
         return "AST_STMT_CONTINUE";
+    case AST_STMT_CONST:
+        return "AST_STMT_CONST";
+    case AST_STMT_TYPE:
+        return "AST_STMT_TYPE";
+    case AST_STMT_MATCH:
+        return "AST_STMT_MATCH";
     }
 
     return "AST_STMT_UNKNOWN";
@@ -348,6 +356,11 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
         print_line(indent + 2, "value:");
         print_expr(expr->value.bin_assign.value, indent + 4);
         break;
+    case AST_EXPR_CAST:
+        print_string_field(indent + 2, "type", expr->value.cast.type);
+        print_line(indent + 2, "expr:");
+        print_expr(expr->value.cast.expr, indent + 4);
+        break;
     case AST_EXPR_POSTFIX:
         print_line(indent + 2, "op: %s",
                    postfix_op_name(expr->value.postfix.op));
@@ -426,6 +439,17 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
             print_line(indent + 2, "value:");
             print_expr(stmt->value.return_stmt.value, indent + 4);
         }
+        break;
+    case AST_STMT_CONST:
+        print_string_field(indent + 2, "name",
+                           stmt->value.const_stmt.name);
+        print_string_field(indent + 2, "type",
+                           stmt->value.const_stmt.type);
+        print_line(indent + 2, "value:");
+        print_expr(stmt->value.const_stmt.value, indent + 4);
+        break;
+    case AST_STMT_TYPE:
+    case AST_STMT_MATCH:
         break;
     case AST_STMT_BREAK:
     case AST_STMT_CONTINUE:
@@ -568,6 +592,30 @@ static void print_enum_defs(const ASTEnumDefVec *enum_defs, size_t indent) {
     }
 }
 
+static void print_type_aliases(const ASTTypeAliasVec *type_aliases,
+                               size_t indent) {
+    print_line(indent, "types_aliases: %zu", type_aliases->len);
+
+    if (type_aliases->len > 0 && type_aliases->data == NULL) {
+        print_line(indent + 2, "(invalid vector: len=%zu, data=null)",
+                   type_aliases->len);
+        return;
+    }
+
+    for (size_t i = 0; i < type_aliases->len; i++) {
+        ASTTypeAlias *type_alias = type_aliases->data[i];
+
+        print_line(indent + 2, "[%zu] TypeAlias", i);
+        if (type_alias == NULL) {
+            print_line(indent + 4, "(null)");
+            continue;
+        }
+
+        print_string_field(indent + 4, "name", type_alias->name);
+        print_string_field(indent + 4, "type", type_alias->type);
+    }
+}
+
 void print_ast(const AST *ast) {
     if (ast == NULL) {
         printf("AST: (null)\n");
@@ -579,4 +627,5 @@ void print_ast(const AST *ast) {
     print_functions(&ast->functions, 2);
     print_struct_defs(&ast->struct_defs, 2);
     print_enum_defs(&ast->enum_defs, 2);
+    print_type_aliases(&ast->types_aliases, 2);
 }

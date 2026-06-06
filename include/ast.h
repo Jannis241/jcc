@@ -63,6 +63,8 @@ typedef enum {
 
     AST_EXPR_ASSIGN,
     AST_EXPR_BINARY_ASSIGN,
+    
+    AST_EXPR_CAST,
 
     AST_EXPR_GROUPING,   
 } ASTExprKind;
@@ -86,6 +88,9 @@ typedef enum {
     AST_STMT_RETURN,
     AST_STMT_BREAK,
     AST_STMT_CONTINUE,
+    AST_STMT_CONST,
+    AST_STMT_TYPE,
+    AST_STMT_MATCH,
 } ASTStmtKind;
 
 
@@ -145,6 +150,18 @@ typedef struct {
     ASTExpr* value;
 } ASTStmtBinaryAssign;
 
+typedef struct {
+    const char* name;
+    const char* type;
+    ASTExpr* value;
+} ASTStmtConst;
+
+typedef struct {
+} ASTStmtMatch;
+
+typedef struct {
+} ASTStmtType;
+
 struct ASTStmt {
     ASTStmtKind kind;
     union {
@@ -156,6 +173,9 @@ struct ASTStmt {
         ASTStmtBinaryAssign bin_assign;
         ASTStmtWhile while_stmt;
         ASTStmtFor for_stmt;
+        ASTStmtConst const_stmt;
+        ASTStmtMatch match_stmt;
+        ASTStmtType type_stmt;
         ASTStmtReturn return_stmt;
         // break und continue brauchen keine value
     } value;
@@ -234,6 +254,11 @@ typedef struct ASTExprBinaryAssign {
     ASTExpr* value;
 } ASTExprBinaryAssign;
 
+typedef struct ASTExprCast {
+    ASTExpr* expr;
+    const char* type;
+} ASTExprCast;
+
 struct ASTExpr{
     ASTExprKind kind;
     union {
@@ -242,6 +267,7 @@ struct ASTExpr{
         ASTExprEnumLiteral enum_literal;
         ASTExprBinary binary;
         ASTExprUnary unary;
+        ASTExprCast cast;
         ASTExprCall call;
         ASTExprAssign assign;
         ASTExprBinaryAssign bin_assign;
@@ -279,10 +305,16 @@ typedef struct {
     ASTStmtBlock block;
 } ASTFunction;
 
+typedef struct {
+    const char* name;
+    const char* type;
+} ASTTypeAlias;
+
 VECTOR_DEFINE(ASTFunction*, ASTFunctionVec)
 VECTOR_DEFINE(ASTStructDef*, ASTStructDefVec)
 VECTOR_DEFINE(ASTEnumDef*, ASTEnumDefVec)
 VECTOR_DEFINE(ASTConst*, ASTConstVec)
+VECTOR_DEFINE(ASTTypeAlias*, ASTTypeAliasVec)
 
 // Alle top level items kommen hier rein
 typedef struct {
@@ -290,6 +322,7 @@ typedef struct {
     ASTStructDefVec struct_defs;
     ASTEnumDefVec enum_defs;
     ASTConstVec  constants;
+    ASTTypeAliasVec types_aliases;
 } AST;
 
 void print_ast(const AST *ast);
