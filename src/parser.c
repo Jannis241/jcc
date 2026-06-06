@@ -194,7 +194,7 @@ static ASTExpr* parse_primary(Parser *parser) {
             advance(parser);
             ASTExpr* primary = parse_primary(parser);
 
-            *node = (ASTExpr){.kind = AST_EXPR_ADDR_LITERAL, .value.literal_value = parser->current_token->value};   
+            *node = (ASTExpr){.kind = AST_EXPR_ADDR_LITERAL, .value.literal_value = primary->value.literal_value};   
 
         break;
         case TOKEN_IDENT:

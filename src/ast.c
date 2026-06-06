@@ -148,6 +148,8 @@ static const char *expr_kind_name(ASTExprKind kind) {
         return "AST_EXPR_BINARY";
     case AST_EXPR_UNARY:
         return "AST_EXPR_UNARY";
+    case AST_EXPR_ADDR_LITERAL:
+        return "AST_EXPR_ADDR_LITERAL";
     case AST_EXPR_CALL:
         return "AST_EXPR_CALL";
     case AST_EXPR_FIELD_ACCESS:
@@ -289,6 +291,7 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
     case AST_EXPR_INT_LITERAL:
     case AST_EXPR_BOOL_LITERAL:
     case AST_EXPR_FLOAT_LITERAL:
+    case AST_EXPR_ADDR_LITERAL:
     case AST_EXPR_CHAR_LITERAL:
         print_string_field(indent + 2, "literal_value",
                            expr->value.literal_value);
