@@ -1,13 +1,8 @@
-
-struct Vec2 {
-    x: int,
-    y: int,
-}
-
-
 fn main() {
-    let mein_vector: Vec2 = Vec2 {x: 1, y: 3};
+    /* das 
+    hier ist ein
+    cooler block comment!
+    */
+
+    let x: int = 3;
 }
-
-
-

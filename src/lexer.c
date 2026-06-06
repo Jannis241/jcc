@@ -449,11 +449,30 @@ static void skip_to_new_line(Lexer* lexer) {
         advance(lexer);
     }
 }
+static void skip_block_comment(Lexer* lexer) {
+    while(1) {
+        if (!lexer->current_char) {
+            lexer->err_status = gen_lexerror(lexer, LEXER_ERR_UNTERMINATED_BLOCKCOMMENT);
+            return;
+        }
+        if (lexer->current_char == '*' && peek(lexer) == '/') {
+            advance(lexer);
+            advance(lexer);
+            break;
+        }
+        advance(lexer);
+    }
+}
 
 static void handle_slash(Lexer* lexer){
     if (peek(lexer) == '/') {
         advance(lexer);
         skip_to_new_line(lexer);
+    }
+    else if (peek(lexer) == '*') {
+        advance(lexer);
+        advance(lexer);
+        skip_block_comment(lexer);
     }
     else if (peek(lexer) == '=') {
         advance(lexer);

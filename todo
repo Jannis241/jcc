@@ -1,1 +1,10 @@
-- Warnings reduzieren
+- Bitwise ops parsen
+- type aliases? 
+    - type Names = [String] 
+- match statements
+- type casting mit as
+- block kommentare
+- möglichkeit für type inference:
+    - nicht immer let x: int = 123; 
+    - sondern auch möglichkeit: 
+        let x = 123;

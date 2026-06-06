@@ -1,4 +1,6 @@
-// Lexer: line comments are skipped.
+// features.jc
+// Vollstaendiges Syntax-Beispiel fuer den aktuellen Lexer und Parser.
+// Nur Zeilenkommentare mit // sind Teil der Syntax.
 
 struct Empty {
 }
@@ -14,6 +16,10 @@ struct Player {
     hp: int,
     inventory: [String],
     path: [Point],
+    matrix: [[int]],
+}
+
+enum EmptyEnum {
 }
 
 enum Color {
@@ -32,6 +38,7 @@ const answer: int = 42;
 const pi: float = 3.1415;
 const enabled: bool = true;
 const disabled: bool = false;
+
 const letter: char = 'j';
 const newline: char = '\n';
 const tab_char: char = '\t';
@@ -39,23 +46,26 @@ const carriage_return: char = '\r';
 const slash_char: char = '\\';
 const quote_char: char = '\'';
 const double_quote_char: char = '\"';
-const tabbed: String = "hello\tjcc";
-const multiline: String = "line\nnext\rend";
-const quoted: String = "quote: \" slash: \\";
+
+const text: String = "hello jcc";
+const escaped_text: String = "line\nnext\tindent\rend";
+const quoted_text: String = "quote: \" slash: \\";
 
 const empty_numbers: [int] = [];
 const numbers: [int] = [1, 2, 3, 4];
 const nested_numbers: [[int]] = [[1, 2], [3, 4]];
+
 const empty_struct: Empty = Empty {};
 const origin: Point = Point { x: 0, y: 0 };
 const favorite: Color = Color::Green;
 
 const arithmetic: int = 1 + 2 * 3 - 4 / 2 % 2;
 const grouped: int = (1 + 2) * -(3 + 4);
+const unary_plus: int = +answer;
 const comparisons: bool = answer < 100 && answer <= 42 && answer > 0 && answer >= 42;
 const equality: bool = answer == 42 && answer != 0;
 const logic: bool = !disabled && enabled || false;
-const unary_plus: int = +answer;
+
 const nested_call: int = parse("123", add(1, 2), numbers[0]);
 const field_index_call: int = spawn_player("Ada").inventory[0].len();
 
@@ -67,16 +77,26 @@ fn first(values: [int]) => int {
     return values[0];
 }
 
+fn identity_with_trailing_param(value: int,) => int {
+    return value;
+}
+
 fn make_numbers() => [int] {
     return [1, 2, 3];
 }
 
-fn log_all() => void {
-    print("string", tabbed, quoted);
+fn empty_function() {
+}
+
+fn implicit_void() {
+    return;
+}
+
+fn explicit_void() => void {
+    print("string", text, escaped_text, quoted_text);
     print("char", letter, newline, tab_char, carriage_return, slash_char, quote_char, double_quote_char);
     print("bool", enabled, disabled);
     print("number", answer, pi);
-    print(multiline);
     return;
 }
 
@@ -100,6 +120,7 @@ fn spawn_player(name: String) => Player {
         hp: 100,
         inventory: ["sword", "potion"],
         path: [origin, Point { x: 1, y: 2 }],
+        matrix: [[1, 2], [3, 4]],
     };
 }
 
@@ -110,6 +131,10 @@ fn classify(value: int) => Result {
         print("zero");
     } else {
         print("positive");
+    }
+
+    if (value != answer) {
+        print("not answer");
     }
 
     return Result::Ok;
@@ -131,7 +156,11 @@ fn loops(limit: int) => int {
     }
 
     for (let j: int = 0; j < 3; j++) {
-        print("for", j);
+        print("for-let", j);
+    }
+
+    for (i = 0; i < limit; i += 1) {
+        print("for-assign", i);
     }
 
     return i;
@@ -139,16 +168,26 @@ fn loops(limit: int) => int {
 
 fn assignments() => int {
     let value: int = 10;
+    let other: int = 20;
+    let final: int = 30;
+    let values: [int] = make_numbers();
     let player: Player = spawn_player("Grace");
 
+    value = other = final;
     value = value + 1;
     value += 2;
     value -= 3;
     value *= 4;
     value /= 2;
 
-    player.pos.x = value;
-    player.pos.y += 1;
+    values[0] = value;
+    values[1] += 3;
+    values[2] -= 1;
+    values[0] *= 2;
+    values[1] /= 2;
+
+    player.pos.x = values[0];
+    player.pos.y += values[1];
     player.hp -= 10;
     player.hp *= 2;
     player.hp /= 3;
@@ -159,14 +198,14 @@ fn assignments() => int {
 fn postfix_examples() => int {
     let values: [int] = make_numbers();
     let player: Player = spawn_player("Lin");
-    let first: int = values[0];
+    let first_value: int = values[0];
     let chained: int = spawn_player("Chained").path[0].x;
 
-    first++;
-    first--;
-    print(player.name.len(), player.inventory[1], chained);
+    first_value++;
+    first_value--;
+    print(player.name.len(), player.inventory[1], player.path[0].x, chained);
 
-    return first + chained;
+    return first_value + chained;
 }
 
 fn main() => int {
@@ -174,14 +213,16 @@ fn main() => int {
     let result: Result = classify(answer);
     let total: int = distance_squared(origin, player.pos) + loops(10);
     let score: int = assignments() + postfix_examples() + first(numbers);
+    let id: int = identity_with_trailing_param(score);
 
-    log_all();
+    implicit_void();
+    explicit_void();
 
     if (result == Result::Ok && total > 0 || score != 0) {
-        print("ok", player.name, total, score);
+        print("ok", player.name, total, score, id, favorite);
         return 0;
     } else {
-        print("error");
+        print("error", Result::Unknown);
     }
 
     return 1;
