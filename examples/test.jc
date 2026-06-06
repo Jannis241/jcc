@@ -1,12 +1,18 @@
-
 struct Vec2 {
     x: int,
     y: int,
 }
+
 fn main() => int{
-    for (let i: int = 0; i < 10; i++) {
-        print("hallo");
-    }
+    let x: int = 3;
+    x = 2;
+
+    let vec: Vec2 = Vec2 {x: 1, y: 5};
+    vec.x = 67;
+
+    x += 3;
+
+    vec.y += x / 3 + 32;
 }
 
 

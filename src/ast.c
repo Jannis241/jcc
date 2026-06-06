@@ -147,6 +147,10 @@ static const char *expr_kind_name(ASTExprKind kind) {
         return "AST_EXPR_POSTFIX";
     case AST_EXPR_VARIABLE:
         return "AST_EXPR_VARIABLE";
+    case AST_EXPR_ASSIGN:
+        return "AST_EXPR_ASSIGN";
+    case AST_EXPR_BINARY_ASSIGN:
+        return "AST_EXPR_BINARY_ASSIGN";
     case AST_EXPR_GROUPING:
         return "AST_EXPR_GROUPING";
     }
@@ -176,10 +180,6 @@ static const char *stmt_kind_name(ASTStmtKind kind) {
         return "AST_STMT_BREAK";
     case AST_STMT_CONTINUE:
         return "AST_STMT_CONTINUE";
-    case AST_STMT_ASSIGN:
-        return "AST_STMT_ASSIGN";
-    case AST_STMT_BINARY_ASSIGN:
-        return "AST_STMT_BINARY_ASSIGN";
     }
 
     return "AST_STMT_UNKNOWN";
@@ -324,6 +324,20 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
         print_string_field(indent + 2, "variable_name",
                            expr->value.variable_name);
         break;
+    case AST_EXPR_ASSIGN:
+        print_line(indent + 2, "target:");
+        print_expr(expr->value.assign.target, indent + 4);
+        print_line(indent + 2, "value:");
+        print_expr(expr->value.assign.value, indent + 4);
+        break;
+    case AST_EXPR_BINARY_ASSIGN:
+        print_line(indent + 2, "op: %s",
+                   bin_op_name(expr->value.bin_assign.op));
+        print_line(indent + 2, "target:");
+        print_expr(expr->value.bin_assign.target, indent + 4);
+        print_line(indent + 2, "value:");
+        print_expr(expr->value.bin_assign.value, indent + 4);
+        break;
     case AST_EXPR_POSTFIX:
         print_line(indent + 2, "op: %s",
                    postfix_op_name(expr->value.postfix.op));
@@ -406,20 +420,6 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
         break;
     case AST_STMT_BREAK:
     case AST_STMT_CONTINUE:
-        break;
-    case AST_STMT_ASSIGN:
-        print_line(indent + 2, "target:");
-        print_expr(stmt->value.assign.target, indent + 4);
-        print_line(indent + 2, "value:");
-        print_expr(stmt->value.assign.value, indent + 4);
-        break;
-    case AST_STMT_BINARY_ASSIGN:
-        print_line(indent + 2, "op: %s",
-                   bin_op_name(stmt->value.bin_assign.op));
-        print_line(indent + 2, "target:");
-        print_expr(stmt->value.bin_assign.target, indent + 4);
-        print_line(indent + 2, "value:");
-        print_expr(stmt->value.bin_assign.value, indent + 4);
         break;
     }
 }
