@@ -1,5 +1,4 @@
 #include "../include/ast.h"
-#include "../include/lexer.h"
 
 #include <ctype.h>
 #include <stdarg.h>

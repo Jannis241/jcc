@@ -1,8 +1,6 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
-#include <iso646.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -414,7 +412,7 @@ static ASTExpr* parse_unary(Parser *parser) {
 
     advance(parser);
 
-    ASTExpr* value = parse_postfix(parser);
+    ASTExpr* value = parse_unary(parser);
 
     if (value == NULL) return NULL;
 
@@ -433,31 +431,26 @@ static ASTExpr* parse_unary(Parser *parser) {
 }
 
 static ASTExpr* parse_cast(Parser *parser) {
-      ASTExpr *expr = parse_unary(parser);
+    ASTExpr *expr = parse_unary(parser);
 
-      while (parser->current_token->kind == TOKEN_AS) {
-          advance(parser);
-          if (!expect(parser, TOKEN_IDENT)) return NULL;
-
-          const char *type = parser->current_token->value;
-
+    while (parser->current_token->kind == TOKEN_AS) {
         advance(parser);
-        
+        const char *type = parse_type(parser);
 
-          ASTExpr *cast = malloc(sizeof(ASTExpr));
-          *cast = (ASTExpr){
-              .kind = AST_EXPR_CAST,
-              .value.cast = {
-                  .expr = expr,
-                  .type = type,
-              },
-          };
+        ASTExpr *cast = malloc(sizeof(ASTExpr));
+        *cast = (ASTExpr){
+            .kind = AST_EXPR_CAST,
+            .value.cast = {
+                .expr = expr,
+                .type = type,
+            },
+        };
 
-          expr = cast;
-      }
+        expr = cast;
+    }
 
-      return expr;
-  }
+    return expr;
+}
 
 
 
@@ -1255,11 +1248,9 @@ static ASTStmt* parse_match(Parser* parser) {
                 make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_RBRACE);
             return NULL;
         }
-        MATCH_OR_NULL(TOKEN_LPARENT);
 
         ASTExpr* case_expr = parse_expr(parser);
         if (case_expr == NULL) return NULL;
-        MATCH_OR_NULL(TOKEN_RPARENT);
 
         MATCH_OR_NULL(TOKEN_FATARROW);
         MATCH_OR_NULL(TOKEN_LBRACE);
@@ -1271,7 +1262,13 @@ static ASTStmt* parse_match(Parser* parser) {
 
         ASTStmtMatchCase *c = malloc(sizeof(ASTStmtMatchCase));
 
+        if (c==NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+
         *c = (ASTStmtMatchCase) {.expr = case_expr, .block = block};
+
 
         ASTStmtMatchCaseVec_push(&cases, c);
 
@@ -1303,9 +1300,8 @@ static ASTStmt* parse_const_stmt(Parser* parser) {
     MATCH_OR_NULL(TOKEN_IDENT);
     MATCH_OR_NULL(TOKEN_COLON);
 
-    const char* t = parser->current_token->value;
+    const char* t = parse_type(parser);
 
-    MATCH_OR_NULL(TOKEN_IDENT);
     MATCH_OR_NULL(TOKEN_EQ);
 
     ASTExpr* value = parse_expr(parser);

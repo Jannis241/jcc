@@ -1,15 +1,5 @@
 fn main() {
-    match (3+3) {
-        (6 / 2) => {
-            print("es war 6");
-        }
-        (3) => {
-            print("mit klammern");
-        }
-        (3 * 3 - 2) => {
-            print("es war 3");
-        }
-
-        (e) => {}
-    }
+    !!true;
+    const x: [int] = [1,2];
+    x as [int];
 }
