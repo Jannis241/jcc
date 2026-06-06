@@ -1,9 +1,4 @@
 - Bitwise ops parsen
-- type aliases? 
-    - type Names = [String] 
-- match statements
-- type casting mit as
-- möglichkeit für type inference:
-    - nicht immer let x: int = 123; 
-    - sondern auch möglichkeit: 
-        let x = 123;
+- match statements parsen
+- type casting mit as parsen
+- type aliases parsen

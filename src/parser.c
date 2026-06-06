@@ -1002,12 +1002,15 @@ static ASTStmt* parse_let(Parser* parser) {
     const char* name = parser->current_token->value;
     advance(parser);
 
-    MATCH_OR_NULL(TOKEN_COLON);
-
-    // parse type handelt selber die errors und advanced selber
-    const char* type = parse_type(parser);
-    if (type == NULL) return NULL;
-
+    // irgendwas was kein normaler type sein kann für später
+    const char* type = "|type_inference|"; 
+    if (parser->current_token->kind == TOKEN_COLON) {
+        // explicit type
+        advance(parser);
+        // parse type handelt selber die errors und advanced selber
+        type = parse_type(parser);
+        if (type == NULL) return NULL;
+    }
 
     MATCH_OR_NULL(TOKEN_EQ);
 

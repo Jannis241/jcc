@@ -19,6 +19,7 @@ typedef enum {
     TOKEN_RETURN,
     TOKEN_WHILE,
     TOKEN_LET,
+    TOKEN_TYPE,
     TOKEN_FN,
     TOKEN_STRUCT,
     TOKEN_CONST,
