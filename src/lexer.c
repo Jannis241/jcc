@@ -9,6 +9,8 @@
 const char* token_kind_name(TokenKind kind) {
     switch (kind) {
         case TOKEN_TRUE: return "True";
+        case TOKEN_LTLT: return "LtLt";
+        case TOKEN_GTGT: return "GtGt";
         case TOKEN_TYPE: return "Type";
         case TOKEN_AS: return "As";
         case TOKEN_MATCH: return "Match";
@@ -32,6 +34,7 @@ const char* token_kind_name(TokenKind kind) {
         case TOKEN_ENUM: return "Enum";
         case TOKEN_AMP_AMP: return "AmpAmp";
         case TOKEN_AMP: return "Amp";
+        case TOKEN_CARET: return "Caret";
         case TOKEN_PIPE: return "Pipe";
         case TOKEN_PIPE_PIPE: return "PipePipe";
         case TOKEN_LPARENT: return "LParen";
@@ -500,6 +503,11 @@ static void handle_gt(Lexer* lexer){
         push_lexer_token(lexer, (Token) {.kind = TOKEN_GTEQ, .value = ">="});
         advance(lexer);
     }
+    else if (peek(lexer) == '>') {
+        advance(lexer);
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_GTGT, .value = ">>"});
+        advance(lexer);
+    }
     else {
         push_lexer_token(lexer, (Token) {.kind = TOKEN_GT, .value = ">"});
         advance(lexer);
@@ -509,6 +517,11 @@ static void handle_lt(Lexer* lexer){
     if (peek(lexer) == '=') {
         advance(lexer);
         push_lexer_token(lexer, (Token) {.kind = TOKEN_LTEQ, .value = "<="});
+        advance(lexer);
+    }
+    else if (peek(lexer) == '<') {
+        advance(lexer);
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_LTLT, .value = "<<"});
         advance(lexer);
     }
     else {
@@ -629,6 +642,10 @@ static void generate_next_token(Lexer* lexer) {
             break;
         case '.':
             push_lexer_token(lexer, (Token) {.kind=TOKEN_DOT, .value = "."});
+            advance(lexer);
+            break;
+        case '^':
+            push_lexer_token(lexer, (Token) {.kind=TOKEN_CARET, .value = "^"});
             advance(lexer);
             break;
         case '!':

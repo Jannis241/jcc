@@ -1,5 +1,6 @@
 #ifndef AST_H
 #define AST_H
+
 #include "vector.h"
 #include <stdbool.h>
 
@@ -24,6 +25,12 @@ typedef enum {
     BINOP_GT,
     BINOP_GE,
     BINOP_LE,
+
+    BINOP_BITOR,
+    BINOP_BITXOR,
+    BINOP_BITAND,
+    BINOP_BITSHIFTLEFT,
+    BINOP_BITSHIFTRIGHT,
 
     BINOP_AND,
     BINOP_OR,

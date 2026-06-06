@@ -1,6 +1,7 @@
 #include"../include/lexer.h"
 #include"../include/parser.h"
 #include"../include/ast.h"
+#include <iso646.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -501,10 +502,130 @@ static ASTExpr* parse_additive(Parser *parser) {
     return lhs;
 }
 
+static ASTExpr* parse_bitshift(Parser *parser) {
+    ASTExpr *lhs = parse_additive(parser);
 
+    if (lhs == NULL) {
+        return NULL;
+    }
+
+    while (1) {
+
+        BinOp op;
+
+        if (parser->current_token->kind == TOKEN_LTLT) {
+            op = BINOP_BITSHIFTLEFT;
+        }
+        else if (parser->current_token->kind == TOKEN_GTGT) {
+            op = BINOP_BITSHIFTRIGHT;
+        }
+        else {
+            break;
+        }
+        advance(parser);
+
+        ASTExpr *rhs = parse_additive(parser);
+        if (rhs == NULL) return NULL;
+
+        ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
+        if (new_lhs == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        new_lhs->kind = AST_EXPR_BINARY;
+        new_lhs->value.binary.lhs = lhs;
+        new_lhs->value.binary.rhs = rhs;
+        new_lhs->value.binary.op = op;
+        lhs = new_lhs;
+    }
+    return lhs;
+
+}
+
+static ASTExpr* parse_bitand(Parser *parser) {
+    ASTExpr *lhs = parse_bitshift(parser);
+
+    if (lhs == NULL) {
+        return NULL;
+    }
+
+    while (parser->current_token->kind == TOKEN_AMP) {
+        advance(parser);
+
+        ASTExpr *rhs = parse_bitshift(parser);
+        if (rhs == NULL) return NULL;
+
+        ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
+        if (new_lhs == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        new_lhs->kind = AST_EXPR_BINARY;
+        new_lhs->value.binary.lhs = lhs;
+        new_lhs->value.binary.rhs = rhs;
+        new_lhs->value.binary.op = BINOP_BITAND;
+        lhs = new_lhs;
+    }
+    return lhs;
+}
+
+
+static ASTExpr* parse_bitxor(Parser *parser) {
+    ASTExpr *lhs = parse_bitand(parser);
+
+    if (lhs == NULL) {
+        return NULL;
+    }
+
+    while (parser->current_token->kind == TOKEN_CARET) {
+        advance(parser);
+
+        ASTExpr *rhs = parse_bitand(parser);
+        if (rhs == NULL) return NULL;
+
+        ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
+        if (new_lhs == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        new_lhs->kind = AST_EXPR_BINARY;
+        new_lhs->value.binary.lhs = lhs;
+        new_lhs->value.binary.rhs = rhs;
+        new_lhs->value.binary.op = BINOP_BITXOR;
+        lhs = new_lhs;
+    }
+    return lhs;
+}
+
+static ASTExpr* parse_bitor(Parser *parser) {
+    ASTExpr *lhs = parse_bitxor(parser);
+
+    if (lhs == NULL) {
+        return NULL;
+    }
+
+    while (parser->current_token->kind == TOKEN_PIPE) {
+        advance(parser);
+
+        ASTExpr *rhs = parse_bitxor(parser);
+        if (rhs == NULL) return NULL;
+
+        ASTExpr* new_lhs = malloc(sizeof(ASTExpr)); 
+        if (new_lhs == NULL) {
+            printf("Malloc failed \n");
+            exit(-1);
+        }
+        new_lhs->kind = AST_EXPR_BINARY;
+        new_lhs->value.binary.lhs = lhs;
+        new_lhs->value.binary.rhs = rhs;
+        new_lhs->value.binary.op = BINOP_BITOR;
+        lhs = new_lhs;
+    }
+    return lhs;
+}
 
 static ASTExpr* parse_comparison(Parser *parser) {
-    ASTExpr *lhs = parse_additive(parser);
+    ASTExpr *lhs = parse_bitor(parser);
 
     if (lhs == NULL) {
         return NULL;
@@ -535,7 +656,7 @@ static ASTExpr* parse_comparison(Parser *parser) {
         }
         advance(parser);
 
-        ASTExpr *rhs = parse_additive(parser);
+        ASTExpr *rhs = parse_bitor(parser);
 
         if (rhs == NULL) {
             return NULL;
