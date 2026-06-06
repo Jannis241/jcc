@@ -1,5 +1,3 @@
-- type aliasing als top level
-- type aliasing in functions
 - match statements parsen
 
 - errors besser machen (die sind eine line zu spät)

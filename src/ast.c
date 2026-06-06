@@ -449,6 +449,11 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
         print_expr(stmt->value.const_stmt.value, indent + 4);
         break;
     case AST_STMT_TYPE:
+        print_string_field(indent + 2, "name",
+                           stmt->value.type_stmt.name);
+        print_string_field(indent + 2, "type_name",
+                           stmt->value.type_stmt.type_name);
+        break;
     case AST_STMT_MATCH:
         break;
     case AST_STMT_BREAK:

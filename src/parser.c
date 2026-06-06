@@ -1228,7 +1228,8 @@ static ASTStmt* parse_type_stmt(Parser* parser) {
 }
 
 static ASTStmt* parse_match(Parser* parser) {
-    // TODO
+    MATCH_OR_NULL(TOKEN_MATCH);
+
     return NULL;
 }
 
