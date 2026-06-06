@@ -160,6 +160,8 @@ typedef struct {
 } ASTStmtMatch;
 
 typedef struct {
+    const char* name;
+    const char* type_name;
 } ASTStmtType;
 
 struct ASTStmt {

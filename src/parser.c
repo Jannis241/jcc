@@ -1203,8 +1203,28 @@ static ASTStmt* parse_expr_stmt(Parser* parser) {
     return stmt;
 }
 static ASTStmt* parse_type_stmt(Parser* parser) {
-    // TODO
-    return NULL;
+    MATCH_OR_NULL(TOKEN_TYPE);
+    const char* type_name = parser->current_token->value;
+    MATCH_OR_FALSE(TOKEN_IDENT);
+    MATCH_OR_FALSE(TOKEN_EQ);
+
+    const char* type_value = parse_type(parser);
+
+    MATCH_OR_FALSE(TOKEN_SEMICOLON);
+
+    ASTStmt* stmt = malloc(sizeof(ASTStmt));
+
+    if (stmt == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    stmt->kind = AST_STMT_TYPE;
+    stmt->value.type_stmt.name = type_name;
+    stmt->value.type_stmt.type_name = type_value;
+
+    return stmt;
+
 }
 
 static ASTStmt* parse_match(Parser* parser) {
@@ -1502,8 +1522,26 @@ static bool parse_enum(Parser *parser) {
 }
 
 static bool parse_type_stmt_top_level(Parser *parser) {
-    // TODO
-    return false;
+    const char* type_name = parser->current_token->value;
+    MATCH_OR_FALSE(TOKEN_IDENT);
+    MATCH_OR_FALSE(TOKEN_EQ);
+
+    const char* type_value = parse_type(parser);
+
+    MATCH_OR_FALSE(TOKEN_SEMICOLON);
+    ASTTypeAlias *ta = malloc(sizeof (ASTTypeAlias));
+
+    if (ta == NULL) {
+        printf("Malloc failed in parse_fn() \n");
+        exit(1);
+    }
+    *ta = (ASTTypeAlias) {.name = type_name, .type =type_value};
+
+    if (!ASTTypeAliasVec_push(&parser->ast.types_aliases, ta)) {
+        printf("Pushing Vec failed.. \n");
+        exit(-1);
+    }
+    return true;
 }
 
 ParserResult parse_tokens(const TokenVec* tokens) {

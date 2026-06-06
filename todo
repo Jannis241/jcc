@@ -1,4 +1,3 @@
-- const auch in functions erlauben (keine type inference dort)
 - type aliasing als top level
 - type aliasing in functions
 - match statements parsen

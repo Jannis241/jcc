@@ -3,5 +3,7 @@ type Zahlen = [int];
 fn main() {
     let x: Zahlen = [1,2,3];
 
+    type Namen = [String];
+
     const t: int = 3;
 }
