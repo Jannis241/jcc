@@ -437,6 +437,8 @@ static ASTExpr* parse_cast(Parser *parser) {
         advance(parser);
         const char *type = parse_type(parser);
 
+        if (type == NULL) return NULL;
+
         ASTExpr *cast = malloc(sizeof(ASTExpr));
         *cast = (ASTExpr){
             .kind = AST_EXPR_CAST,
@@ -1210,6 +1212,7 @@ static ASTStmt* parse_type_stmt(Parser* parser) {
     MATCH_OR_FALSE(TOKEN_EQ);
 
     const char* type_value = parse_type(parser);
+    if (type_value == NULL) return NULL;
 
     MATCH_OR_FALSE(TOKEN_SEMICOLON);
 
@@ -1270,7 +1273,10 @@ static ASTStmt* parse_match(Parser* parser) {
         *c = (ASTStmtMatchCase) {.expr = case_expr, .block = block};
 
 
-        ASTStmtMatchCaseVec_push(&cases, c);
+        if (!ASTStmtMatchCaseVec_push(&cases, c)) {
+            printf("Pushing vec failed \n");
+            exit(-1);
+        }
 
         MATCH_OR_NULL(TOKEN_RBRACE);
 
@@ -1301,6 +1307,7 @@ static ASTStmt* parse_const_stmt(Parser* parser) {
     MATCH_OR_NULL(TOKEN_COLON);
 
     const char* t = parse_type(parser);
+    if (t == NULL) return NULL;
 
     MATCH_OR_NULL(TOKEN_EQ);
 
@@ -1582,6 +1589,7 @@ static bool parse_enum(Parser *parser) {
 
 static bool parse_type_stmt_top_level(Parser *parser) {
     const char* type_name = parser->current_token->value;
+    if (type_name == NULL) return NULL;
     MATCH_OR_FALSE(TOKEN_IDENT);
     MATCH_OR_FALSE(TOKEN_EQ);
 
