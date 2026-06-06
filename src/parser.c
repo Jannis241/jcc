@@ -35,12 +35,41 @@ static ASTExpr* parse_expr(Parser* parser);
 static ASTStmtBlock parse_block(Parser* parser);
 static ASTStmt* parse_statement(Parser* parser);
 
+static bool should_report_after_previous(TokenKind expected) {
+    return expected == TOKEN_SEMICOLON ||
+        expected == TOKEN_COMMA ||
+        expected == TOKEN_RPARENT ||
+        expected == TOKEN_RBRACKET ||
+        expected == TOKEN_RBRACE;
+}
+
+static SourceSpan span_after_token(const Token *token) {
+    size_t width = token->span.end - token->span.start;
+    if (width == 0) {
+        width = 1;
+    }
+
+    return (SourceSpan) {
+        .start = token->span.end,
+        .end = token->span.end + 1,
+        .line = token->span.line,
+        .column = token->span.column + width,
+    };
+}
+
 static ParserError make_parser_error(Parser *parser, ParserStatus status,
                                      TokenKind expected) {
+    SourceSpan span = parser->current_token->span;
+    if (status == PARSER_ERR_UNEXPECTED_TOKEN &&
+        parser->previous_token != NULL &&
+        should_report_after_previous(expected)) {
+        span = span_after_token(parser->previous_token);
+    }
+
     return (ParserError) {
         .status = status,
         .token_pos = parser->pos,
-        .span = parser->current_token->span,
+        .span = span,
         .expected = expected,
         .got = parser->current_token->kind,
     };
@@ -80,6 +109,7 @@ static inline void advance(Parser *parser) {
             make_parser_error(parser, PARSER_ERR_UNEXPECTED_EOF, TOKEN_EOF);
         return;
     }
+    parser->previous_token = parser->current_token;
     parser->pos += 1;
     parser->current_token = &parser->tokens->data[parser->pos];
 }
@@ -1626,7 +1656,7 @@ ParserResult parse_tokens(const TokenVec* tokens) {
     
     AST new_ast = {.constants = const_vec, .functions = func_vec, .struct_defs = structdef_vec,.enum_defs = enumdef_vec};
 
-    Parser parser = {.tokens = tokens, .ast = new_ast, .parser_error = {0},.current_token = &tokens->data[0], .pos = 0};
+    Parser parser = {.tokens = tokens, .ast = new_ast, .parser_error = {0}, .current_token = &tokens->data[0], .previous_token = NULL, .pos = 0};
 
 
     while (parser.current_token->kind != TOKEN_EOF) {

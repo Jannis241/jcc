@@ -28,6 +28,7 @@ typedef struct {
     const TokenVec *tokens;
     size_t pos;
     const Token *current_token;
+    const Token *previous_token;
     ParserError parser_error;
     AST ast;
 } Parser;
