@@ -5,4 +5,8 @@ fn main() {
     */
 
     let x: int = 3;
+
+    as;
+    match;
+    match;
 }

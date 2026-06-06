@@ -9,6 +9,8 @@
 const char* token_kind_name(TokenKind kind) {
     switch (kind) {
         case TOKEN_TRUE: return "True";
+        case TOKEN_AS: return "As";
+        case TOKEN_MATCH: return "Match";
         case TOKEN_FALSE: return "False";
         case TOKEN_IDENT: return "Ident";
         case TOKEN_INT: return "IntNumber";
@@ -362,6 +364,10 @@ static void handle_ident(Lexer* lexer) {
 
     if (strcmp(ident, "if") == 0) {
         push_lexer_token(lexer, (Token) {.kind = TOKEN_IF, .value = ident});
+    } else if (strcmp(ident, "as") == 0) {
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_AS, .value = ident});
+    } else if (strcmp(ident, "match") == 0) {
+        push_lexer_token(lexer, (Token) {.kind = TOKEN_MATCH, .value = ident});
     } else if (strcmp(ident, "else") == 0) {
         push_lexer_token(lexer, (Token) {.kind = TOKEN_ELSE, .value = ident});
     } else if (strcmp(ident, "return") == 0) {
