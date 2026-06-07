@@ -115,8 +115,32 @@ static inline void advance(Parser *parser) {
 }
 
 
+static const char *make_array_type(const char *inner_type) {
+    char* array_type = malloc(strlen(inner_type) + 3);
+    if (array_type == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    sprintf(array_type, "[%s]", inner_type);
+    return array_type;
+}
+
+static const char *make_pointer_type(const char *type) {
+    char* pointer_type = malloc(strlen(type) + 2);
+    if (pointer_type == NULL) {
+        printf("Malloc failed \n");
+        exit(-1);
+    }
+
+    sprintf(pointer_type, "%s*", type);
+    return pointer_type;
+}
+
 
 static const char* parse_type(Parser *parser) {
+    const char *type;
+
     if (parser->current_token->kind == TOKEN_LBRACKET) {
         advance(parser);
 
@@ -127,31 +151,20 @@ static const char* parse_type(Parser *parser) {
 
         MATCH_OR_NULL(TOKEN_RBRACKET);
 
-        char* array_type = malloc(strlen(inner_type) + 3);
-        if (array_type == NULL) {
-            printf("Malloc failed \n");
-            exit(-1);
-        }
-        sprintf(array_type, "[%s]", inner_type);
-        return array_type;
+        type = make_array_type(inner_type);
     }
-
-    if (!expect(parser, TOKEN_IDENT)) {
-        return NULL;
-    }
-
-    const char* type = parser->current_token->value;
-    advance(parser);
-
-    if (parser->current_token->kind == TOKEN_STAR) {
-        char* pointer_type = malloc(strlen(type) + 3);
-        if (pointer_type == NULL) {
-            printf("Malloc failed \n");
-            exit(-1);
+    else {
+        if (!expect(parser, TOKEN_IDENT)) {
+            return NULL;
         }
-        sprintf(pointer_type, "%s*", type);
+
+        type = parser->current_token->value;
         advance(parser);
-        return pointer_type;
+    }
+
+    while (parser->current_token->kind == TOKEN_STAR) {
+        type = make_pointer_type(type);
+        advance(parser);
     }
 
     return type;
@@ -189,17 +202,6 @@ static ASTExpr* parse_primary(Parser *parser) {
         case TOKEN_FALSE:
             *node = (ASTExpr){.kind = AST_EXPR_BOOL_LITERAL, .value.literal_value = parser->current_token->value};   
             advance(parser);
-        break;
-        case TOKEN_STAR:
-            advance(parser);
-            ASTExpr* p = parse_primary(parser);
-            *node = (ASTExpr){.kind = AST_EXPR_DEREFERENCE_LITERAL, .value.literal_value = p->value.literal_value};   
-        break;
-        case TOKEN_AMP:
-            advance(parser);
-            ASTExpr* primary = parse_primary(parser);
-
-            *node = (ASTExpr){.kind = AST_EXPR_ADDR_LITERAL, .value.literal_value = primary->value.literal_value};   
         break;
         case TOKEN_IDENT:
             // ident { ==> struct
@@ -448,6 +450,7 @@ static ASTExpr* parse_unary(Parser *parser) {
     if (parser->current_token->kind == TOKEN_PLUS) {
         // 3 - +3 => + ist egal
         advance(parser);
+        return parse_unary(parser);
     }
 
     UnaryOp op;
@@ -458,6 +461,12 @@ static ASTExpr* parse_unary(Parser *parser) {
     }
     else if(parser->current_token->kind == TOKEN_BANG) {
         op = UNARY_NOT;
+    }
+    else if(parser->current_token->kind == TOKEN_AMP) {
+        op = UNARY_ADDR;
+    }
+    else if(parser->current_token->kind == TOKEN_STAR) {
+        op = UNARY_DEREF;
     }
     else {
         return parse_postfix(parser);
@@ -1423,7 +1432,6 @@ static ASTStmt* parse_statement(Parser* parser) {
         break;
     }
 }
-
 
 static bool current_is_statement_start(Parser *parser) {
     TokenKind stmt_kinds[11] = {TOKEN_LET, TOKEN_IF, TOKEN_WHILE, TOKEN_FOR, TOKEN_BREAK, TOKEN_CONTINUE, TOKEN_RETURN, TOKEN_LBRACE, TOKEN_MATCH, TOKEN_TYPE, TOKEN_CONST};

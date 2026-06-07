@@ -57,6 +57,7 @@ static void print_source_line(const char *path, const char *source,
     printf("^\n");
 }
 
+
 static void print_lexer_error(const char *path, const char *source,
                               LexError error) {
     switch (error.status) {

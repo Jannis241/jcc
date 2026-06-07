@@ -40,6 +40,8 @@ typedef enum {
 typedef enum {
     UNARY_NEG,
     UNARY_NOT,
+    UNARY_ADDR,
+    UNARY_DEREF,
 } UnaryOp;
 
 typedef enum {
@@ -48,8 +50,6 @@ typedef enum {
     AST_EXPR_BOOL_LITERAL,
     AST_EXPR_FLOAT_LITERAL,
     AST_EXPR_CHAR_LITERAL,
-    AST_EXPR_ADDR_LITERAL,
-    AST_EXPR_DEREFERENCE_LITERAL,
 
     AST_EXPR_LIST_LITERAL,
 
