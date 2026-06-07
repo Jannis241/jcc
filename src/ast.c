@@ -68,9 +68,7 @@ static void print_string_field(size_t indent, const char *name,
     putchar('\n');
 }
 
-static const char *bool_name(bool value) {
-    return value ? "true" : "false";
-}
+static const char *bool_name(bool value) { return value ? "true" : "false"; }
 
 static const char *bin_op_name(BinOp op) {
     switch (op) {
@@ -170,7 +168,7 @@ static const char *expr_kind_name(ASTExprKind kind) {
         return "AST_EXPR_GROUPING";
     }
 
-    printf("Unknown expr found in print ast: %d \n", kind );
+    printf("Unknown expr found in print ast: %d \n", kind);
 
     return "AST_EXPR_UNKNOWN";
 }
@@ -298,13 +296,11 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
                            expr->value.literal_value);
         break;
     case AST_EXPR_LIST_LITERAL:
-        print_line(indent + 2, "elements: %zu",
-                   expr->value.list_literal.len);
+        print_line(indent + 2, "elements: %zu", expr->value.list_literal.len);
         print_expr_vec(&expr->value.list_literal, indent + 4);
         break;
     case AST_EXPR_STRUCT_LITERAL:
-        print_string_field(indent + 2, "name",
-                           expr->value.struct_literal.name);
+        print_string_field(indent + 2, "name", expr->value.struct_literal.name);
         print_line(indent + 2, "fields: %zu",
                    expr->value.struct_literal.fields.len);
         print_struct_literal_fields(&expr->value.struct_literal.fields,
@@ -317,8 +313,7 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
                            expr->value.enum_literal.case_name);
         break;
     case AST_EXPR_BINARY:
-        print_line(indent + 2, "op: %s",
-                   bin_op_name(expr->value.binary.op));
+        print_line(indent + 2, "op: %s", bin_op_name(expr->value.binary.op));
         print_line(indent + 2, "lhs:");
         print_expr(expr->value.binary.lhs, indent + 4);
         print_line(indent + 2, "rhs:");
@@ -381,8 +376,7 @@ static void print_expr(const ASTExpr *expr, size_t indent) {
     }
 }
 
-static void print_match_cases(const ASTStmtMatchCaseVec *cases,
-                              size_t indent) {
+static void print_match_cases(const ASTStmtMatchCaseVec *cases, size_t indent) {
     if (cases->len > 0 && cases->data == NULL) {
         print_line(indent, "(invalid vector: len=%zu, data=null)", cases->len);
         return;
@@ -467,24 +461,20 @@ static void print_stmt(const ASTStmt *stmt, size_t indent) {
         }
         break;
     case AST_STMT_CONST:
-        print_string_field(indent + 2, "name",
-                           stmt->value.const_stmt.name);
-        print_string_field(indent + 2, "type",
-                           stmt->value.const_stmt.type);
+        print_string_field(indent + 2, "name", stmt->value.const_stmt.name);
+        print_string_field(indent + 2, "type", stmt->value.const_stmt.type);
         print_line(indent + 2, "value:");
         print_expr(stmt->value.const_stmt.value, indent + 4);
         break;
     case AST_STMT_TYPE:
-        print_string_field(indent + 2, "name",
-                           stmt->value.type_stmt.name);
+        print_string_field(indent + 2, "name", stmt->value.type_stmt.name);
         print_string_field(indent + 2, "type_name",
                            stmt->value.type_stmt.type_name);
         break;
     case AST_STMT_MATCH:
         print_line(indent + 2, "expr:");
         print_expr(stmt->value.match_stmt.expr, indent + 4);
-        print_line(indent + 2, "cases: %zu",
-                   stmt->value.match_stmt.cases.len);
+        print_line(indent + 2, "cases: %zu", stmt->value.match_stmt.cases.len);
         print_match_cases(&stmt->value.match_stmt.cases, indent + 4);
         break;
     case AST_STMT_BREAK:

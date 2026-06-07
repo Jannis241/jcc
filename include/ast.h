@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 typedef struct {
-    const char* type;
-    const char* name;
+    const char *type;
+    const char *name;
 } ASTTypeName;
 
 VECTOR_DEFINE(ASTTypeName*, ASTTypeNameVec)
@@ -36,7 +36,6 @@ typedef enum {
     BINOP_OR,
 } BinOp;
 
-
 typedef enum {
     UNARY_NEG,
     UNARY_NOT,
@@ -58,17 +57,17 @@ typedef enum {
 
     AST_EXPR_BINARY,
     AST_EXPR_UNARY,
-    AST_EXPR_CALL,  
+    AST_EXPR_CALL,
     AST_EXPR_FIELD_ACCESS,
     AST_EXPR_POSTFIX,
     AST_EXPR_VARIABLE,
 
     AST_EXPR_ASSIGN,
     AST_EXPR_BINARY_ASSIGN,
-    
+
     AST_EXPR_CAST,
 
-    AST_EXPR_GROUPING,   
+    AST_EXPR_GROUPING,
 } ASTExprKind;
 
 typedef enum {
@@ -95,84 +94,79 @@ typedef enum {
     AST_STMT_MATCH,
 } ASTStmtKind;
 
-
 typedef struct ASTStmt ASTStmt;
 
-
-VECTOR_DEFINE(ASTStmt*, ASTStmtVec)
+VECTOR_DEFINE(ASTStmt *, ASTStmtVec)
 
 typedef struct {
     ASTStmtVec statements;
 } ASTStmtBlock;
 
 typedef struct {
-    ASTExpr* expr; 
+    ASTExpr *expr;
 } ASTStmtExpr;
 
 typedef struct {
-    const char* var_name;
-    const char* var_type;
-    ASTExpr* value;
+    const char *var_name;
+    const char *var_type;
+    ASTExpr *value;
 } ASTStmtLet;
 
-
-
 typedef struct {
-    ASTExpr* condition;
+    ASTExpr *condition;
     ASTStmtBlock code_block;
-    bool has_else; 
+    bool has_else;
     ASTStmt *else_stmt;
 } ASTStmtIf;
 
 typedef struct {
-    ASTExpr* condition;
+    ASTExpr *condition;
     ASTStmtBlock code_block;
 } ASTStmtWhile;
 typedef struct {
-    ASTExpr* target;
-    ASTExpr* value;
+    ASTExpr *target;
+    ASTExpr *value;
 } ASTStmtAssign;
 
 typedef struct {
-    ASTStmt* init;
-    ASTExpr* condition;
-    ASTStmt* action;
+    ASTStmt *init;
+    ASTExpr *condition;
+    ASTStmt *action;
     ASTStmtBlock code_block;
 } ASTStmtFor;
 
 typedef struct {
     bool has_return_value;
-    ASTExpr* value; // kann auch void sein
+    ASTExpr *value; // kann auch void sein
 } ASTStmtReturn;
 
-
 typedef struct {
-    ASTExpr* target;
+    ASTExpr *target;
     BinOp op;
-    ASTExpr* value;
+    ASTExpr *value;
 } ASTStmtBinaryAssign;
 
 typedef struct {
-    const char* name;
-    const char* type;
-    ASTExpr* value;
+    const char *name;
+    const char *type;
+    ASTExpr *value;
 } ASTStmtConst;
 
 typedef struct {
-    ASTExpr* expr;
+    ASTExpr *expr;
     ASTStmtBlock block;
 } ASTStmtMatchCase;
 
-VECTOR_DEFINE(ASTStmtMatchCase*, ASTStmtMatchCaseVec)
+VECTOR_DEFINE(ASTStmtMatchCase *, ASTStmtMatchCaseVec)
 
 typedef struct {
-    ASTExpr* expr;
+    ASTExpr *expr;
     ASTStmtMatchCaseVec cases;
 } ASTStmtMatch;
 
 typedef struct {
-    const char* name;
-    const char* type_name;
+    const char *name;
+    const char *type_name;
 } ASTStmtType;
 
 struct ASTStmt {
@@ -194,55 +188,46 @@ struct ASTStmt {
     } value;
 };
 
-
-
-
-
 typedef struct {
-    const char* name;
-    ASTExpr* expr;
+    const char *name;
+    ASTExpr *expr;
 } ASTNameExpr;
 
-VECTOR_DEFINE(ASTNameExpr*, ASTNameExprVec)
+VECTOR_DEFINE(ASTNameExpr *, ASTNameExprVec)
 
 typedef struct {
-    const char* enum_name;
-    const char* case_name;
+    const char *enum_name;
+    const char *case_name;
 } ASTExprEnumLiteral;
 
-
 typedef struct {
-    const char* name;
-    ASTNameExprVec fields; // field name, expr => x: 2+3 -> x (field name) 2+3 (value -> expr)
+    const char *name;
+    ASTNameExprVec fields; // field name, expr => x: 2+3 -> x (field name) 2+3
+                           // (value -> expr)
 } ASTExprStructLiteral;
 
-
 typedef struct {
-    ASTExpr* lhs; 
-    ASTExpr* rhs; 
+    ASTExpr *lhs;
+    ASTExpr *rhs;
     BinOp op;
 } ASTExprBinary;
 
 typedef struct {
-    ASTExpr* expr; 
+    ASTExpr *expr;
     UnaryOp op;
 } ASTExprUnary;
 
-
-
-VECTOR_DEFINE(ASTExpr*, ASTExprVec)
+VECTOR_DEFINE(ASTExpr *, ASTExprVec)
 
 typedef struct ASTExprCall {
-    ASTExpr* function_name;
+    ASTExpr *function_name;
     ASTExprVec params;
 } ASTExprCall;
 
-
 typedef struct ASTExprFieldAccess {
-    ASTExpr* obj;
-    const char* field_name;
+    ASTExpr *obj;
+    const char *field_name;
 } ASTExprFieldAccess;
-
 
 typedef enum PostFixOp {
     POSTFIX_OP_BRACKETS,
@@ -252,30 +237,30 @@ typedef enum PostFixOp {
 
 typedef struct ASTExprPostfix {
     PostFixOp op;
-    ASTExpr* obj;
-    ASTExpr* value;
+    ASTExpr *obj;
+    ASTExpr *value;
 } ASTExprPostfix;
 
 typedef struct ASTExprAssign {
-    ASTExpr* target;
-    ASTExpr* value;
+    ASTExpr *target;
+    ASTExpr *value;
 } ASTExprAssign;
 
 typedef struct ASTExprBinaryAssign {
-    ASTExpr* target;
+    ASTExpr *target;
     BinOp op;
-    ASTExpr* value;
+    ASTExpr *value;
 } ASTExprBinaryAssign;
 
 typedef struct ASTExprCast {
-    ASTExpr* expr;
-    const char* type;
+    ASTExpr *expr;
+    const char *type;
 } ASTExprCast;
 
-struct ASTExpr{
+struct ASTExpr {
     ASTExprKind kind;
     union {
-        const char* literal_value;
+        const char *literal_value;
         ASTExprStructLiteral struct_literal;
         ASTExprEnumLiteral enum_literal;
         ASTExprBinary binary;
@@ -286,41 +271,39 @@ struct ASTExpr{
         ASTExprBinaryAssign bin_assign;
         ASTExprFieldAccess field_access;
         ASTExprPostfix postfix;
-        ASTExpr* grouping_inner;
-        const char* variable_name;
+        ASTExpr *grouping_inner;
+        const char *variable_name;
         ASTExprVec list_literal;
     } value;
-} ;
-
+};
 
 typedef struct {
     const char *name;
     const char *type;
-    ASTExpr* value;
+    ASTExpr *value;
 } ASTConst;
 
-VECTOR_DEFINE(const char*, StrVec)
+VECTOR_DEFINE(const char *, StrVec)
 typedef struct {
-    const char* name;
+    const char *name;
     StrVec cases;
 } ASTEnumDef;
 
-
 typedef struct {
-    const char* name;
-    ASTTypeNameVec fields; 
+    const char *name;
+    ASTTypeNameVec fields;
 } ASTStructDef;
 
 typedef struct {
-    const char* name;
-    const char* return_type;
+    const char *name;
+    const char *return_type;
     ASTTypeNameVec params;
     ASTStmtBlock block;
 } ASTFunction;
 
 typedef struct {
-    const char* name;
-    const char* type;
+    const char *name;
+    const char *type;
 } ASTTypeAlias;
 
 VECTOR_DEFINE(ASTFunction*, ASTFunctionVec)
@@ -334,7 +317,7 @@ typedef struct {
     ASTFunctionVec functions;
     ASTStructDefVec struct_defs;
     ASTEnumDefVec enum_defs;
-    ASTConstVec  constants;
+    ASTConstVec constants;
     ASTTypeAliasVec types_aliases;
 } AST;
 

@@ -1,4 +1,4 @@
-#include "../include/parser.h"
+#include "../include/codegen.h"
 #include "../include/parser.h"
 
 #include <stddef.h>
@@ -57,7 +57,6 @@ static void print_source_line(const char *path, const char *source,
     printf("^\n");
 }
 
-
 static void print_lexer_error(const char *path, const char *source,
                               LexError error) {
     switch (error.status) {
@@ -106,8 +105,8 @@ static void print_parser_error(const char *path, const char *source,
         printf("error: unexpected end of file\n");
         break;
     case PARSER_ERR_UNEXPECTED_TOKEN:
-        printf("error: expected %s, got %s\n",
-               token_kind_name(error.expected), token_kind_name(error.got));
+        printf("error: expected %s, got %s\n", token_kind_name(error.expected),
+               token_kind_name(error.got));
         break;
     case PARSER_ERR_UNEXPECTED_EXPR_START:
         printf("error: expected expression, got %s\n",
@@ -175,24 +174,29 @@ int main(int argc, char *argv[]) {
         print_lexer_error(argv[1], source, token_res.error);
         return 1;
     }
-    printf("[LEXER SUCCESS]\n");
 
     if (token_res.tokens.num_of_tokens == 0) {
         return 0;
     }
 
-    for (size_t i = 0; i < token_res.tokens.num_of_tokens; i++) {
-        printf("%zu.", i);
-        print_out_token(&token_res.tokens.data[i]);
-    }
-
+    // for (size_t i = 0; i < token_res.tokens.num_of_tokens; i++) {
+    //     printf("%zu.", i);
+    //     print_out_token(&token_res.tokens.data[i]);
+    // }
     ParserResult parser_result = parse_tokens(&token_res.tokens);
 
     if (parser_result.error.status != PARSER_OK) {
         print_parser_error(argv[1], source, parser_result.error);
         return 1;
     }
-    printf("[PARSER SUCCESS]\n");
 
-    print_ast(&parser_result.ast);
+    FILE *output;
+    output = fopen("output.s", "w");
+
+    if (output == NULL) {
+        printf("Failed to create output file. \n");
+        return 1;
+    }
+
+    codegen(&parser_result.ast, output);
 }

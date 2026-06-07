@@ -1,9 +1,3 @@
-
-- pointer und deref fixxen 
-
-
-
-
   - Top-Level-Lookup / Declarations sammeln
     Funktionen, Structs, Enums, Constants registrieren.
     Bei Structs/Enums zuerst Namen registrieren, damit sie als Typen existieren.
