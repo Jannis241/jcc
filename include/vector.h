@@ -8,7 +8,7 @@
 #include <string.h>
 
 #ifndef VECTOR_INITIAL_CAPACITY
-#define VECTOR_INITIAL_CAPACITY 256
+#define VECTOR_INITIAL_CAPACITY 8
 #endif
 
 static inline bool vector_reserve(void **data, size_t *cap, size_t min_cap,

@@ -24,14 +24,17 @@
         advance(parser);                                                       \
     } while (0)
 
-static bool contains_tokenkind(TokenKind value, TokenKind *arr, size_t len) {
+    static bool contains_tokenkind(TokenKind value, TokenKind *arr,
+                                   size_t len) {
     for (size_t i = 0; i < len; i++) {
         if (arr[i] == value) {
             return true;
         }
     }
+
     return false;
 }
+
 
 static ASTExpr *parse_expr(Parser *parser);
 static ASTStmtBlock parse_block(Parser *parser);
@@ -1775,8 +1778,8 @@ ParserResult parse_tokens(const TokenVec *tokens) {
                     &parser, PARSER_ERR_UNEXPECTED_TOP_LEVEL, TOKEN_EOF),
             };
             break;
+
         }
     }
-
     return (ParserResult){.ast = parser.ast, .error = parser.parser_error};
 }

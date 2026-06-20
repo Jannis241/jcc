@@ -1,5 +1,5 @@
-#include "../include/codegen.h"
 #include "../include/parser.h"
+#include "../include/semantic.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
     if (source == NULL)
         return 1;
 
+
     LexResult token_res = generate_tokens(source);
 
     if (token_res.error.status != LEXER_OK) {
@@ -179,24 +180,15 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    // for (size_t i = 0; i < token_res.tokens.num_of_tokens; i++) {
-    //     printf("%zu.", i);
-    //     print_out_token(&token_res.tokens.data[i]);
-    // }
     ParserResult parser_result = parse_tokens(&token_res.tokens);
 
     if (parser_result.error.status != PARSER_OK) {
         print_parser_error(argv[1], source, parser_result.error);
         return 1;
     }
+    print_ast(&parser_result.ast);
 
-    FILE *output;
-    output = fopen("output.s", "w");
+    SemanticResult sema_res = lower_ast(&parser_result.ast);
 
-    if (output == NULL) {
-        printf("Failed to create output file. \n");
-        return 1;
-    }
 
-    codegen(&parser_result.ast, output);
 }
