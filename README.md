@@ -8,7 +8,9 @@ geschrieben wird
 ## Status
 
 Die V1 zielt zuerst nur auf ein funktionierendes Ergebnis ab. Es gibt bewusst noch
-Stellen, die später effizienter und besser implementiert werden können.
+tellen, die später effizienter und besser implementiert werden können. Der Vector Makro wird
+aktuell sehr häufig verwendet, was zu einer großen Binary size führen kann. Für V1 ist das jedoch
+noch okay.
 
 ## Ownership und Lifetime
 

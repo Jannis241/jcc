@@ -1,4 +1,4 @@
-fn main() {
+fn main() => [int]{
 
     // pointer und dereferencing
     let a: int* = 3;
