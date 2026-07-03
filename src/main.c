@@ -1,5 +1,4 @@
 #include "../include/parser.h"
-#include "../include/semantic.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -187,8 +186,4 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     print_ast(&parser_result.ast);
-
-    SemanticResult sema_res = lower_ast(&parser_result.ast);
-
-
 }
