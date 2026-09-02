@@ -1,4 +1,5 @@
 #include "../include/parser.h"
+#include "../include/semantic.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -25,6 +26,8 @@ static size_t digit_count(size_t value) {
 
     return digits;
 }
+
+
 
 static void print_source_line(const char *path, const char *source,
                               SourceSpan span) {

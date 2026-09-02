@@ -51,7 +51,6 @@ static SourceSpan span_after_token(const Token *token) {
     if (width == 0) {
         width = 1;
     }
-
     return (SourceSpan){
         .start = token->span.end,
         .end = token->span.end + 1,
