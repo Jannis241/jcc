@@ -28,7 +28,7 @@ typedef enum {
     TYPE_NAMED,
 } Type;
 
-VECTOR_DEFINE(Type, TypeVec);
+VECTOR_DEFINE(Type, TypeVec)
 
 typedef struct {
     char* func_name;
@@ -51,7 +51,7 @@ typedef struct Symbol {
     };
 } Symbol;
 
-VECTOR_DEFINE(Symbol, SymbolVec);
+VECTOR_DEFINE(Symbol, SymbolVec)
 
 typedef struct SymbolTable {
     struct SymbolTable *parent;
@@ -81,7 +81,7 @@ typedef struct TypedParam{
     char *name;
 } TypeName;
 
-VECTOR_DEFINE(TypeName, TypedTypeNameVec);
+VECTOR_DEFINE(TypeName, TypedTypeNameVec)
 
 typedef struct {
     Symbol *symbol;

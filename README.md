@@ -118,7 +118,7 @@ I read a few online articles about how compilers are structured in general. Most
 You need a C compiler (gcc or clang) and `make`.
 
 ```sh
-make                  # release build -> bin/release/app
+make                  # release build -> bin/release/jcc
 make MODE=debug       # debug build
 make MODE=sanitize    # build with AddressSanitizer and UBSan
 

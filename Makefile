@@ -36,7 +36,6 @@ WARNFLAGS ?= \
 	-Wsign-conversion \
 	-Wdouble-promotion \
 	-Wnull-dereference \
-	-Wswitch-enum \
 	-Wimplicit-fallthrough \
 	-Wvla \
 	-Wno-unused-variable \

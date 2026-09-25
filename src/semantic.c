@@ -7,5 +7,5 @@ SemanticResult lower_ast(AST *ast){
         printf("Ast is null.. \n");
         exit(-1);
     }
-
+    return (SemanticResult){};
 }
