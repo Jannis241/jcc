@@ -122,7 +122,7 @@ make                  # release build -> bin/release/app
 make MODE=debug       # debug build
 make MODE=sanitize    # build with AddressSanitizer and UBSan
 
-./bin/release/app examples/features.jc
+./bin/release/jcc examples/features.jc
 ```
 
 At the moment jcc prints the AST of the program.

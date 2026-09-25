@@ -1,7 +1,7 @@
 SHELL := /bin/sh
 .DELETE_ON_ERROR:
 
-TARGET ?= app
+TARGET ?= jcc
 MODE ?= release
 RUN_ENV ?=
 
