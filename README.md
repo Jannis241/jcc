@@ -93,7 +93,7 @@ This way `1 + 2 * 3` is parsed as `1 + (2 * 3)` without needing any extra rules.
 - whether the types match, for example when assigning a value or calling a function
 - whether a function returns the right type
 
-But i still need to figure out how exactly i want to built this stage of my compiler.
+But i still need to figure out how exactly i want to build this stage of my compiler.
 
 ## Error messages
 
